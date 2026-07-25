@@ -752,7 +752,15 @@ function updateStyleControls() {
     applyFolderTilt();
     syncChoiceButtons();
 
-    els.ySlider.value = getDefaultIconYForCurrentStyle();
+    const defaultYByStyle = {
+        border: 8,
+        noborder: 5,
+        pods: 0,
+        icon_only: 0,
+        custom: 5
+    };
+    
+    els.ySlider.value = defaultYByStyle[style] ?? DEFAULTS.icon.y;
     applyIconControls();
 }
 
@@ -1078,6 +1086,84 @@ async function fetchBlobWithTimeout(src, timeoutMs = 3500) {
     }
 }
 
+// Return reliable drawable dimensions for PNG, WebP and SVG images
+function getImageDimensions(img, fallbackWidth = 1024, fallbackHeight = 1024) {
+    const width = Math.max(1, img.naturalWidth || img.videoWidth || img.width || fallbackWidth);
+    const height = Math.max(1, img.naturalHeight || img.videoHeight || img.height || fallbackHeight);
+    return { width, height };
+}
+
+// Draw an image centered inside a transparent export canvas
+function drawContainedImage(ctx, img, canvasWidth, canvasHeight, padding = 0) {
+    const { width: sourceWidth, height: sourceHeight } = getImageDimensions(img, canvasWidth, canvasHeight);
+    const availableWidth = Math.max(1, canvasWidth - padding * 2);
+    const availableHeight = Math.max(1, canvasHeight - padding * 2);
+    const ratio = Math.min(availableWidth / sourceWidth, availableHeight / sourceHeight);
+    const width = sourceWidth * ratio;
+    const height = sourceHeight * ratio;
+
+    ctx.drawImage(
+        img,
+        (canvasWidth - width) / 2,
+        (canvasHeight - height) / 2,
+        width,
+        height
+    );
+}
+
+// Load an image through a fetched Blob URL to make SVG canvas export more reliable
+async function loadImageFromFetchedBlob(src, fallbackName = 'Asset') {
+    const blob = await fetchBlobWithTimeout(src, 5000);
+    const objectUrl = URL.createObjectURL(blob);
+
+    try {
+        return await loadImage(objectUrl);
+    } catch (error) {
+        throw new Error(`${fallbackName} could not be rendered from fetched blob: ${error.message}`);
+    } finally {
+        URL.revokeObjectURL(objectUrl);
+    }
+}
+
+// Convert text into a compact SVG data URL
+function svgTextToDataUrl(svgText) {
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
+}
+
+// Strip SVG features that can taint canvas export in some browsers, especially Firefox
+function sanitizeSvgForCanvas(svgText) {
+    return svgText
+        .replace(/<\?xml[^>]*>/gi, '')
+        .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
+        .replace(/\sfilter="url\([^"]+\)"/gi, '')
+        .replace(/\sfilter='url\([^']+\)'/gi, '')
+        .replace(/<filter\b[\s\S]*?<\/filter>/gi, '')
+        .replace(/<script\b[\s\S]*?<\/script>/gi, '')
+        .replace(/<foreignObject\b[\s\S]*?<\/foreignObject>/gi, '')
+        .replace(/\s+on[a-z]+="[^"]*"/gi, '')
+        .replace(/\s+on[a-z]+='[^']*'/gi, '');
+}
+
+// Load an SVG as same-origin text, sanitize it, then use a data URL for canvas drawing
+async function loadSafeSvgImage(src, fallbackName = 'SVG') {
+    const response = await fetch(src, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const svgText = await response.text();
+    const safeSvgText = sanitizeSvgForCanvas(svgText);
+    const dataUrl = svgTextToDataUrl(safeSvgText);
+
+    try {
+        return await loadImage(dataUrl, 6000);
+    } catch (error) {
+        throw new Error(`${fallbackName} could not be rendered as safe SVG: ${error.message}`);
+    }
+}
+
+function isSvgSource(src) {
+    return /\.svg(?:$|[?#])/i.test(String(src || ''));
+}
+
 // Render an image source onto canvas and export it as PNG
 async function imageToBlob(src, size = 1024) {
     const img = await loadImage(src);
@@ -1089,21 +1175,16 @@ async function imageToBlob(src, size = 1024) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
-    const ratio = Math.min(size / img.width, size / img.height);
-    const width = img.width * ratio;
-    const height = img.height * ratio;
-
-    ctx.drawImage(img, (size - width) / 2, (size - height) / 2, width, height);
+    drawContainedImage(ctx, img, size, size);
     return canvasToBlob(canvas);
 }
 
-// Fetch same-origin/static assets as their native file Blob when possible
+// Rasterize an asset at its natural size and export it as PNG
 async function imageToNativeBlob(src) {
     const img = await loadImage(src);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const width = Math.max(1, img.naturalWidth || img.width || 1024);
-    const height = Math.max(1, img.naturalHeight || img.height || 1024);
+    const { width, height } = getImageDimensions(img, 1024, 1024);
 
     canvas.width = width;
     canvas.height = height;
@@ -1113,17 +1194,38 @@ async function imageToNativeBlob(src) {
     return canvasToBlob(canvas);
 }
 
-// Resolve any supported source into an exportable Blob, with PNG fallback
+// Rasterize a logo on a wide transparent canvas before writing it as PNG
+async function logoToBlob(src, fallbackName = 'Logo', width = 1024, height = 256) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = width;
+    canvas.height = height;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    if (isSvgSource(src)) {
+        const safeSvgImg = await loadSafeSvgImage(src, fallbackName);
+        drawContainedImage(ctx, safeSvgImg, width, height);
+        return canvasToBlob(canvas);
+    }
+
+    const img = await loadImage(src);
+    drawContainedImage(ctx, img, width, height);
+    return canvasToBlob(canvas);
+}
+
+// Resolve any supported image source into a real PNG Blob
 async function sourceToBlob(src, fallbackName = 'Asset') {
     if (state.missingAssets.has(src)) {
         throw new Error(`Missing asset: ${fallbackName}`);
     }
 
     try {
-        return await fetchBlobWithTimeout(src, 3500);
-    } catch (fetchError) {
-        console.warn(`Direct fetch failed for ${fallbackName}. Falling back to canvas export.`, fetchError);
-        return imageToNativeBlob(src);
+        return await imageToNativeBlob(src);
+    } catch (renderError) {
+        console.warn(`Canvas export failed for ${fallbackName}. Trying direct fetch fallback.`, renderError);
+        return fetchBlobWithTimeout(src, 3500);
     }
 }
 
@@ -1222,16 +1324,42 @@ async function exportSelectedIcons() {
         for (const icon of selected) {
             const targetSrc = getExportIconSrc(icon);
             const safeName = getSafeFileName(icon.displayName);
+            const isLogoExport = icon.tab === 'logos';
+            const isDockExport = icon.tab === 'dock';
+
             els.downloadBtn.textContent = `Export ${exportedCount + skipped.length + 1}/${selected.length}`;
 
-            if (state.missingAssets.has(targetSrc) || icon.isMissing) {
+            if (!isLogoExport && (state.missingAssets.has(targetSrc) || icon.isMissing)) {
                 skipped.push(safeName);
                 continue;
             }
 
             try {
-                if (state.mode === 'assets') {
-                    zip.file(icon.filename || `${safeName}_Asset.png`, await sourceToBlob(targetSrc, icon.displayName));
+                if (isLogoExport) {
+                    state.missingAssets.delete(targetSrc);
+                    icon.isMissing = false;
+
+                    zip.file(
+                        icon.filename || `${safeName}_Logo.png`,
+                        await logoToBlob(targetSrc, icon.displayName)
+                    );
+
+                    exportedCount++;
+                    continue;
+                }
+
+                if (isDockExport) {
+                    const iconImg = await loadImage(targetSrc);
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    canvas.width = 256;
+                    canvas.height = 256;
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(iconImg, 0, 0, 256, 256);
+
+                    zip.file(icon.filename || `${safeName}_Dock.png`, await canvasToBlob(canvas));
                     exportedCount++;
                     continue;
                 }
@@ -1239,7 +1367,7 @@ async function exportSelectedIcons() {
                 const effectiveStyle = getEffectiveStyleForIcon(icon, style);
 
                 if (effectiveStyle === 'icon_only') {
-                    zip.file(`${safeName}.png`, await sourceToBlob(targetSrc, icon.displayName));
+                    zip.file(icon.filename || `${safeName}.png`, await sourceToBlob(targetSrc, icon.displayName));
                     exportedCount++;
                     continue;
                 }
@@ -1248,20 +1376,10 @@ async function exportSelectedIcons() {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
 
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-
-                if (state.mode === 'dock') {
-                    canvas.width = 256;
-                    canvas.height = 256;
-                    ctx.drawImage(iconImg, 0, 0, 256, 256);
-                    zip.file(`${safeName}_Dock.png`, await canvasToBlob(canvas));
-                    exportedCount++;
-                    continue;
-                }
-
                 canvas.width = 1024;
                 canvas.height = 1024;
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
 
                 const effectiveFolderAngle = effectiveStyle === 'pods'
                     ? 0
@@ -1274,9 +1392,10 @@ async function exportSelectedIcons() {
                 if (background) ctx.drawImage(background, -512, -512, 1024, 1024);
 
                 const maxSize = 1024 * scale;
-                const ratio = Math.min(maxSize / iconImg.width, maxSize / iconImg.height);
-                const width = iconImg.width * ratio;
-                const height = iconImg.height * ratio;
+                const { width: sourceWidth, height: sourceHeight } = getImageDimensions(iconImg, 1024, 1024);
+                const ratio = Math.min(maxSize / sourceWidth, maxSize / sourceHeight);
+                const width = sourceWidth * ratio;
+                const height = sourceHeight * ratio;
 
                 ctx.translate(
                     1024 * (Number(els.xSlider.value) / 100),
@@ -1285,18 +1404,25 @@ async function exportSelectedIcons() {
                 ctx.rotate(Number(els.rotSlider.value) * Math.PI / 180);
                 ctx.drawImage(iconImg, -width / 2, -height / 2, width, height);
 
-                zip.file(`${safeName}${getExportSuffix(effectiveStyle)}.png`, await canvasToBlob(canvas));
+                zip.file(icon.filename || `${safeName}${getExportSuffix(effectiveStyle)}.png`, await canvasToBlob(canvas));
                 exportedCount++;
             } catch (iconError) {
                 console.warn(`Skipped ${safeName}:`, iconError);
-                state.missingAssets.add(targetSrc);
-                icon.isMissing = true;
-                skipped.push(safeName);
+
+                const message = iconError?.message || 'export error';
+                const isTrueMissingAsset = /could not be loaded|timed out|HTTP 404|HTTP 403|Failed to fetch|NetworkError|AbortError/i.test(message);
+
+                if (isTrueMissingAsset) {
+                    state.missingAssets.add(targetSrc);
+                    icon.isMissing = true;
+                }
+
+                skipped.push(`${safeName} (${message})`);
             }
         }
 
         if (!exportedCount) {
-            alert(`No exportable assets found. ${skipped.length ? `Missing/WIP: ${skipped.slice(0, 8).join(', ')}${skipped.length > 8 ? '…' : ''}` : ''}`);
+            alert(`No exportable assets found. ${skipped.length ? `Skipped: ${skipped.slice(0, 8).join(', ')}${skipped.length > 8 ? '…' : ''}` : ''}`);
             return;
         }
 
@@ -1304,7 +1430,7 @@ async function exportSelectedIcons() {
         saveAs(await zip.generateAsync({ type: 'blob' }), 'Export_Custom.zip');
 
         if (skipped.length) {
-            alert(`${skipped.length} missing/WIP asset${skipped.length > 1 ? 's were' : ' was'} skipped: ${skipped.slice(0, 8).join(', ')}${skipped.length > 8 ? '…' : ''}`);
+            alert(`${skipped.length} asset${skipped.length > 1 ? 's were' : ' was'} skipped: ${skipped.slice(0, 8).join(', ')}${skipped.length > 8 ? '…' : ''}`);
         }
     } catch (error) {
         console.error(error);
