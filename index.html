@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sticker Icons</title>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --folder-bg: none;
+            --icon-scale: 0.5;
+            --icon-x: 0%;
+            --icon-y: 8%;
+            --icon-rot: 0deg;
+            --folder-rot: 0deg;
+            --page: #f6f7f9;
+            --surface: #ffffff;
+            --surface-soft: #f9fafb;
+            --line: #e4e7ec;
+            --ink: #111827;
+            --muted: #6b7280;
+            --muted-soft: #9ca3af;
+            --accent: #2563eb;
+            --accent-soft: #eff6ff;
+            --radius-lg: 18px;
+            --shadow: none;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 22px 22px 108px;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--ink);
+            background: var(--page);
+        }
+
+        button, select, input { font: inherit; }
+        button { border: 0; }
+
+        .container,
+        .app-header {
+            width: min(1400px, 100%);
+            margin: 0 auto;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin-bottom: 22px;
+            padding: 10px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--surface);
+            box-shadow: none;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 220px;
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            background: #111827;
+            color: white;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+        }
+
+        .brand-copy { display: grid; gap: 2px; }
+        .brand-copy strong { font-size: 1rem; letter-spacing: -0.02em; }
+        .brand-copy span { font-size: 0.78rem; color: var(--muted); }
+
+        .mode-nav {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            /* background: var(--surface-soft); */
+        }
+
+        .main-tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 9px 13px;
+            border-radius: 12px;
+            color: var(--muted);
+            background: transparent;
+            cursor: pointer;
+            font-weight: 750;
+            transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+        }
+
+        .main-tab-btn:hover { color: var(--accent); background: var(--accent-soft); }
+        .main-tab-btn.active { color: var(--accent); background: var(--accent-soft); }
+        .mode-icon { font-size: 1rem; color: var(--accent); }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(340px, 1.1fr) minmax(320px, 0.9fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+
+        .control-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--line);
+            color: var(--ink);
+            font-size: 0.82rem;
+            font-weight: 850;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .section-stack { display: grid; gap: 10px; }
+        .control-section {
+            padding-top: 15px;
+            border-top: 1px solid var(--line);
+        }
+        .control-title + .control-section {
+            padding-top: 0;
+            border-top: 0;
+        }
+        .control-nb {
+            border-top: 0;
+            padding-top: 0;
+        }
+        .field-label { color: var(--muted); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.02em; }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .choice-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .choice-button {
+            min-height: 74px;
+            display: grid;
+            align-content: center;
+            justify-items: center;
+            gap: 6px;
+            padding: 10px 8px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--surface-soft);
+            color: var(--muted);
+            cursor: pointer;
+            text-align: center;
+            transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+        }
+
+        .choice-button:hover { color: var(--ink); background: #ffffff; transform: translateY(-1px); }
+        .choice-button.active { color: var(--ink); background: var(--accent-soft); border-color: #bfdbfe; }
+        .choice-button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+        .choice-icon { font-size: 1.15rem; line-height: 1; }
+        .choice-button strong { font-size: 0.78rem; line-height: 1.1; }
+
+        .tilt-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .tilt-grid .choice-button { min-height: 54px; grid-template-columns: auto auto; justify-content: center; }
+
+        .custom-upload {
+            width: fit-content;
+            display: none;
+            padding: 8px 12px;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 0.82rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .color-layout {
+            display: grid;
+            gap: 10px;
+        }
+
+        .color-inputs {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .color-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid var(--line);
+            border-radius: 15px;
+            background: var(--surface-soft);
+        }
+
+        .color-card input[type="color"] {
+            width: 48px;
+            height: 48px;
+            flex: 0 0 auto;
+            padding: 0;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            overflow: hidden;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .color-card input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-card input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 13px; }
+        .color-card input[type="color"]::-moz-color-swatch { border: 0; border-radius: 13px; }
+
+        .color-meta { display: grid; gap: 2px; min-width: 0; }
+        .color-meta strong { font-size: 0.82rem; }
+        .color-meta span { color: var(--muted); font-size: 0.76rem; font-weight: 750; }
+
+        .color-actions {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 36px;
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #ffffff;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 850;
+            transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+        }
+
+        .action-btn:hover { color: var(--ink); background: var(--surface-soft); }
+        .action-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        .btn-reset:hover { color: #dc2626; border-color: #fecaca; background: #fff1f2; }
+        .btn-random:hover { color: #7c3aed; border-color: #ddd6fe; background: #f5f3ff; }
+        .btn-auto:hover { color: var(--accent); border-color: #bfdbfe; background: var(--accent-soft); }
+        .position-reset-btn { min-height: 30px; padding: 6px 10px; text-transform: none; letter-spacing: 0; font-size: 0.72rem; }
+        .position-reset-btn svg { width: 13px; height: 13px; }
+
+        .dock-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 13px;
+            border: 1px solid #bfdbfe;
+            border-radius: 14px;
+            background: var(--accent-soft);
+            color: #1e3a8a;
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .dock-note::before {
+            content: 'ⓘ';
+            flex: 0 0 auto;
+            font-weight: 900;
+            color: var(--accent);
+        }
+
+        .dock-note a {
+            color: var(--accent);
+            font-weight: 850;
+            text-decoration: none;
+        }
+
+        .dock-note a:hover { text-decoration: underline; }
+
+        .dock-note[hidden] { display: none !important; }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 34px);
+            gap: 8px;
+            align-items: center;
+        }
+
+        .preset-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            border: 2px solid #ffffff;
+            outline: 1px solid var(--line);
+            background: linear-gradient(180deg, var(--c1), var(--c2));
+            cursor: pointer;
+            transition: transform 0.16s ease, outline-color 0.16s ease;
+        }
+
+        .preset-btn:hover { transform: translateY(-1px) scale(1.05); }
+        .preset-btn.active { outline-color: var(--accent); }
+
+        .slider-row {
+            display: grid;
+            grid-template-columns: 54px minmax(120px, 1fr) 46px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-row label { color: var(--muted); font-size: 0.82rem; font-weight: 800; }
+        input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+        .val-display { color: var(--muted); font-size: 0.8rem; font-weight: 850; text-align: right; }
+
+        .tabs {
+            width: fit-content;
+            max-width: 100%;
+            margin: 0 auto 20px;
+            padding: 5px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            border: 1px solid var(--line);
+            border-radius: 15px;
+            background: var(--surface);
+        }
+
+        .tab-btn {
+            padding: 8px 13px;
+            border-radius: 11px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 0.84rem;
+            font-weight: 800;
+        }
+
+        .tab-btn:hover { color: var(--ink); background: var(--surface-soft); }
+        .tab-btn.active { color: var(--accent); background: var(--accent-soft); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 16px;
+            margin-bottom: 5rem;
+        }
+
+        .card {
+            position: relative;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: var(--surface);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+        }
+
+        .card:hover { transform: translateY(-3px); box-shadow: 0 12px 22px rgba(15, 23, 42, 0.08); }
+        .card.selected { border-color: #93c5fd; background: var(--accent-soft); }
+        .card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 22px;
+            height: 22px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            background: var(--accent);
+            color: white;
+            font-size: 0.78rem;
+            font-weight: 900;
+        }
+        .card.hidden { display: none !important; }
+
+        .card-preview { position: relative; width: 100px; height: 100px; margin: 0 auto 10px; transform: rotate(var(--folder-rot)); transition: transform 0.16s ease; }
+        .card-bg { position: absolute; inset: 0; background-image: var(--folder-bg); background-size: contain; background-repeat: no-repeat; background-position: center; }
+        .card-icon { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; object-fit: contain; pointer-events: none; transform: translate(calc(-50% + var(--icon-x)), calc(-50% + var(--icon-y))) scale(var(--icon-scale)) rotate(var(--icon-rot)); }
+        .card-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #475569; font-size: 0.76rem; font-weight: 750; }
+
+        .missing-asset {
+            position: absolute;
+            inset: 50% auto auto 50%;
+            width: min(82%, 86px);
+            height: min(82%, 86px);
+            display: grid;
+            place-items: center;
+            align-content: center;
+            gap: 2px;
+            padding: 8px;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 18px;
+            background: rgba(248, 250, 252, 0.94);
+            color: #64748b;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            text-transform: uppercase;
+        }
+
+        .missing-asset strong {
+            color: #334155;
+            font-size: 0.78rem;
+            font-weight: 950;
+            letter-spacing: 0.08em;
+        }
+
+        .missing-asset span {
+            color: var(--muted);
+            font-size: 0.58rem;
+            font-weight: 850;
+            letter-spacing: 0.06em;
+        }
+
+        .card.has-missing-asset .card-preview { transform: none !important; }
+        .card.has-missing-asset .card-bg { display: none; }
+
+        .grid.assets-mode .missing-asset {
+            width: min(88%, 150px);
+            height: 72px;
+            border-radius: 16px;
+        }
+
+        .grid.assets-mode { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+        .grid.assets-mode .card-preview { width: 100%; height: 104px; transform: none !important; }
+        .grid.assets-mode .card-icon { width: 90%; height: 90%; transform: translate(-50%, -50%) !important; }
+
+        .card.add-card {
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1.5px dashed #cbd5e1;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .card.add-card:hover { border-color: var(--accent); background: var(--accent-soft); }
+        .plus-sign { color: #93c5fd; font-size: 3.4rem; font-weight: 250; line-height: 0.85; }
+
+        .action-bar {
+            position: fixed;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            width: min(500px, calc(100% - 32px));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px 12px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 999px;
+            background: #111827;
+            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.28);
+            z-index: 100;
+        }
+
+        .action-count { color: white; font-size: 0.9rem; font-weight: 850; white-space: nowrap; }
+        .download-btn { padding: 10px 18px; border-radius: 999px; background: var(--accent); color: white; cursor: pointer; font-size: 0.86rem; font-weight: 900; }
+        .download-btn:hover:not(:disabled) { background: #1d4ed8; }
+        .download-btn:disabled { background: #4b5563; cursor: not-allowed; }
+
+        @media (max-width: 900px) {
+            body { padding: 14px 14px 108px; }
+            .app-header { align-items: stretch; flex-direction: column; }
+            .mode-nav { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .main-tab-btn { justify-content: center; }
+            .dashboard { grid-template-columns: 1fr; }
+            .choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .color-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .preset-grid { grid-template-columns: repeat(5, 34px); }
+        }
+
+        @media (max-width: 540px) {
+            .mode-nav { grid-template-columns: 1fr; }
+            .color-inputs { grid-template-columns: 1fr; }
+            .action-bar { align-items: stretch; flex-direction: column; border-radius: 22px; }
+            .download-btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<header class="app-header">
+    <nav id="mode-switcher" class="mode-nav" aria-label="Editor mode">
+        <button type="button" class="main-tab-btn active" data-mode="generator" onclick="switchMode('generator')">
+            <span>Folders</span>
+        </button>
+        <button type="button" class="main-tab-btn" data-mode="dock" onclick="switchMode('dock')">
+            <span>Dock Icons</span>
+        </button>
+        <button type="button" class="main-tab-btn" data-mode="assets" onclick="switchMode('assets')">
+            <span>Logos</span>
+        </button>
+    </nav>
+</header>
+
+<input type="file" id="icon-upload-input" multiple accept="image/png, image/jpeg, image/webp, image/svg+xml" style="display: none;">
+
+<div class="container">
+    <div class="dashboard">
+        <section class="control-group">
+            <div class="control-title" id="appearance-title">Folder Appearance</div>
+
+            <div class="dock-note" id="dock-note" hidden>
+                <span>Note for Cocoon 3.0 users: In the current version, you need to use <a href="https://f-droid.org/packages/com.kaanelloed.iconeration/" target="_blank" rel="noopener noreferrer">Alembicons</a> to generate an icon pack that can be selected in the Cocoon Dock settings.</span>
+            </div>
+
+            <div class="section-stack control-section control-nb" id="style-control-row">
+                <span class="field-label">Shape</span>
+                <select id="global-style" class="sr-only" aria-label="Folder style">
+                    <option value="border">Border</option>
+                    <option value="noborder">No Border</option>
+                    <option value="pods">Pods</option>
+                    <option value="icon_only">Icon Only</option>
+                    <option value="custom">Custom Image...</option>
+                </select>
+                <div class="choice-grid" role="group" aria-label="Folder style">
+                    <button type="button" class="choice-button style-option-btn active" data-style="border">
+                        <span class="choice-icon">▣</span><strong>Border</strong>
+                    </button>
+                    <button type="button" class="choice-button style-option-btn" data-style="noborder">
+                        <span class="choice-icon">▢</span><strong>No Border</strong>
+                    </button>
+                    <button type="button" class="choice-button style-option-btn" data-style="pods">
+                        <span class="choice-icon">■</span><strong>Pods</strong>
+                    </button>
+                    <button type="button" class="choice-button style-option-btn" data-style="icon_only">
+                        <span class="choice-icon">◌</span><strong>Icon Only</strong>
+                    </button>
+                    <button type="button" class="choice-button style-option-btn" data-style="custom">
+                        <span class="choice-icon">▧</span><strong>Custom</strong>
+                    </button>
+                </div>
+                <button type="button" id="custom-upload-btn" class="custom-upload">Upload custom background</button>
+                <input type="file" id="custom-bg-upload" accept="image/png, image/jpeg, image/webp" style="display: none;">
+            </div>
+
+            <div class="section-stack control-section" id="tilt-control-row">
+                <span class="field-label">Folder angle</span>
+                <select id="folder-tilt" class="sr-only" aria-label="Folder tilt">
+                    <option value="0">Straight</option>
+                    <option value="-4">Tilted Left</option>
+                    <option value="4">Tilted Right</option>
+                </select>
+                <div class="choice-grid tilt-grid" role="group" aria-label="Folder tilt">
+                    <button type="button" class="choice-button tilt-option-btn" data-tilt="-4"><span class="choice-icon">↙</span><strong>Left</strong></button>
+                    <button type="button" class="choice-button tilt-option-btn active" data-tilt="0"><span class="choice-icon">│</span><strong>Straight</strong></button>
+                    <button type="button" class="choice-button tilt-option-btn" data-tilt="4"><span class="choice-icon">↘</span><strong>Right</strong></button>
+                </div>
+            </div>
+
+            <div class="section-stack control-section">
+                <span class="field-label">Colors</span>
+                <div class="color-layout">
+                    <div class="color-inputs">
+                        <label class="color-card">
+                            <input type="color" id="color-top" value="#FEC2A1" aria-label="Top color">
+                            <span class="color-meta"><strong>Top</strong><span id="color-top-value">#FEC2A1</span></span>
+                        </label>
+                        <label class="color-card">
+                            <input type="color" id="color-bottom" value="#F58422" aria-label="Bottom color">
+                            <span class="color-meta"><strong>Bottom</strong><span id="color-bottom-value">#F58422</span></span>
+                        </label>
+                    </div>
+                    <div class="color-actions">
+                        <button type="button" id="reset-color-btn" class="action-btn btn-reset">
+                            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                            Reset
+                        </button>
+                        <button type="button" id="random-color-btn" class="action-btn btn-random">
+                            <svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+                            Random
+                        </button>
+                        <button type="button" id="auto-color-btn" class="action-btn btn-auto">
+                            <svg viewBox="0 0 24 24"><path d="M21 16.09v-4.99a5 5 0 0 0-2.58-4.42l-4.5-2.5a5 5 0 0 0-5.04 0l-4.5 2.5A5 5 0 0 0 1.8 11.1v4.99a5 5 0 0 0 2.58 4.42l4.5 2.5a5 5 0 0 0 5.04 0l4.5-2.5a5 5 0 0 0 2.58-4.42z"/><circle cx="11.4" cy="11.4" r="2.4"/></svg>
+                            Auto
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-stack control-section">
+                <span class="field-label">Presets</span>
+                <div class="preset-grid" role="group" aria-label="Color presets">
+                    <button type="button" class="preset-btn active" data-c1="#FEC2A1" data-c2="#F58422" style="--c1:#FEC2A1;--c2:#F58422" aria-label="Orange preset"></button>
+                    <button type="button" class="preset-btn" data-c1="#92CCF8" data-c2="#5EA6FE" style="--c1:#92CCF8;--c2:#5EA6FE" aria-label="Blue preset"></button>
+                    <button type="button" class="preset-btn" data-c1="#FDD3A4" data-c2="#F3BD31" style="--c1:#FDD3A4;--c2:#F3BD31" aria-label="Yellow preset"></button>
+                    <button type="button" class="preset-btn" data-c1="#6ED58B" data-c2="#12D0B1" style="--c1:#6ED58B;--c2:#12D0B1" aria-label="Green preset"></button>
+                    <button type="button" class="preset-btn" data-c1="#DA97FF" data-c2="#E660FF" style="--c1:#DA97FF;--c2:#E660FF" aria-label="Pink preset"></button>
+                    <button type="button" class="preset-btn" data-c1="#F78CB0" data-c2="#FD636B" style="--c1:#F78CB0;--c2:#FD636B" aria-label="Red preset"></button>
+                    <button type="button" class="preset-btn" data-c1="#89A7FC" data-c2="#8042FD" style="--c1:#89A7FC;--c2:#8042FD" aria-label="Indigo preset"></button>
+                    <button type="button" class="preset-btn" data-c1="#C5C5C5" data-c2="#9DA1A4" style="--c1:#C5C5C5;--c2:#9DA1A4" aria-label="Light gray preset"></button>
+                    <button type="button" class="preset-btn" data-c1="#838C97" data-c2="#626975" style="--c1:#838C97;--c2:#626975" aria-label="Dark gray preset"></button>
+                    <button type="button" class="preset-btn" data-c1="#383838" data-c2="#2C2C2C" style="--c1:#383838;--c2:#2C2C2C" aria-label="Black preset"></button>
+                </div>
+            </div>
+        </section>
+
+        <section class="control-group" id="icon-controls-group">
+            <div class="control-title">
+                <span id="adjustments-title">Icon Adjustments</span>
+                <button type="button" id="reset-position-btn" class="action-btn btn-reset position-reset-btn" aria-label="Reset icon adjustments">
+                    <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Reset
+                </button>
+            </div>
+            <div class="slider-row choice-button">
+                <label for="slider-scale">Scale</label>
+                <input type="range" id="slider-scale" min="20" max="100" value="50">
+                <span class="val-display" id="val-scale">50%</span>
+            </div>
+            <div class="slider-row choice-button">
+                <label for="slider-x">Pos X</label>
+                <input type="range" id="slider-x" min="-50" max="50" value="0">
+                <span class="val-display" id="val-x">0</span>
+            </div>
+            <div class="slider-row choice-button">
+                <label for="slider-y">Pos Y</label>
+                <input type="range" id="slider-y" min="-50" max="50" value="5">
+                <span class="val-display" id="val-y">5</span>
+            </div>
+            <div class="slider-row choice-button">
+                <label for="slider-rot">Tilt</label>
+                <input type="range" id="slider-rot" min="-180" max="180" value="0">
+                <span class="val-display" id="val-rot">0°</span>
+            </div>
+        </section>
+    </div>
+
+    <div id="sub-tabs" class="tabs">
+        <button type="button" class="tab-btn active" data-tab="platforms">Platforms</button>
+        <button type="button" class="tab-btn" data-tab="games">Games</button>
+        <button type="button" class="tab-btn" data-tab="generic">Generic</button>
+        <button type="button" class="tab-btn" data-tab="apps">Apps</button>
+        <button type="button" class="tab-btn" data-tab="custom">Custom</button>
+    </div>
+
+    <div id="icon-grid" class="grid"></div>
+</div>
+
+<div class="action-bar">
+    <span class="action-count" id="selection-count">0 icon selected</span>
+    <button type="button" class="download-btn" id="download-btn" disabled>Download Custom .zip</button>
+</div>
+
+<script src="catalog.js"></script>
+<script src="icon-templates.js"></script>
+<script src="dock-icons.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
