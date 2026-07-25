@@ -336,7 +336,7 @@
     const iconsDatabase = [];
     const EXPORT_LABEL_BY_SUFFIX = Object.freeze({
         icon: 'Folder',
-        logo: 'Asset',
+        logo: 'Logo',
         dock: 'Dock'
     });
 
