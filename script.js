@@ -1,6 +1,17 @@
 /*
  * Sticker Icons
  * ------------------------
+ * Browser-only icon editor
+ *
+ * Browser security note:
+ * A static web page cannot scan the local assets/ directory by itself
+ * Every asset must therefore be declared in catalog.js
+ * The main script consumes catalog.js, icon-templates.js and dock-icons.js
+ * to build the grid, previews and export filenames
+ *
+ * - UI state lives in the `state` object instead of being scattered globally
+ * - SVG templates use COLOR_TOP / COLOR_BOTTOM placeholders for recoloring
+ * - Blob URLs are revoked whenever dynamic SVGs are regenerated
  */
 
 // --- EXTERNAL DATA CATALOG ---
@@ -39,6 +50,85 @@ const genericSvgTemplates = window.iconSvgTemplates || {};
 // Keeping them outside the main script makes the app logic easier to read while preserving editable SVG templates
 const dockSvgTemplates = window.dockSvgTemplates || {};
 
+// Background SVG templates are loaded from background-templates.js
+const backgroundSvgTemplates = window.backgroundSvgTemplates || {};
+
+const BACKGROUND_DEFAULT_PRESET = Object.freeze({ top: '#EFEFF2', bottom: '#CFCFDB' });
+const BACKGROUND_DARK_PRESET = Object.freeze({ top: '#2A2A2A', bottom: '#1E1E1E' });
+const BACKGROUND_DESIGN_SIZE = Object.freeze({ width: 1920, height: 1080 });
+const BACKGROUND_PREVIEW_SIZE = Object.freeze({ width: 1280, height: 720 });
+const BACKGROUND_EXTERNAL_SIZE = Object.freeze({ width: 1240, height: 1080 });
+const BACKGROUND_EXTERNAL_VARIANT_LABELS = Object.freeze({
+    margin: 'Margin',
+    full: 'No Margin',
+    gradient: 'Gradient only'
+});
+const BACKGROUND_EXTERNAL_THEME_LABELS = Object.freeze({
+    light: 'Light Theme',
+    dark: 'Dark Theme'
+});
+const BACKGROUND_EXTERNAL_THEME_COLORS = Object.freeze({
+    light: Object.freeze({
+        backgroundTop: '#EFEFF2',
+        backgroundBottom: '#CFCFDB'
+    }),
+    dark: Object.freeze({
+        backgroundTop: '#2A2A2A',
+        backgroundBottom: '#1E1E1E'
+    })
+});
+const BACKGROUND_EXTERNAL_SVG_TEMPLATES = Object.freeze({
+    light: Object.freeze({
+        margin: "<svg width=\"1240\" height=\"1080\" viewBox=\"0 0 1240 1080\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_2945_183)\">\n<rect width=\"1240\" height=\"1080\" fill=\"url(#paint0_linear_2945_183)\"/>\n<g filter=\"url(#filter0_di_2945_183)\">\n<rect x=\"20\" y=\"188\" width=\"1200\" height=\"872\" rx=\"40\" fill=\"url(#paint1_linear_2945_183)\"/>\n</g>\n</g>\n<defs>\n<filter id=\"filter0_di_2945_183\" x=\"8\" y=\"180\" width=\"1224\" height=\"896\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"4\"/>\n<feGaussianBlur stdDeviation=\"6\"/>\n<feComposite in2=\"hardAlpha\" operator=\"out\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_2945_183\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_2945_183\" result=\"shape\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"-4\"/>\n<feGaussianBlur stdDeviation=\"4\"/>\n<feComposite in2=\"hardAlpha\" operator=\"arithmetic\" k2=\"-1\" k3=\"1\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0\"/>\n<feBlend mode=\"normal\" in2=\"shape\" result=\"effect2_innerShadow_2945_183\"/>\n</filter>\n<linearGradient id=\"paint0_linear_2945_183\" x1=\"620\" y1=\"0\" x2=\"620\" y2=\"1080\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#EFEFF2\"/>\n<stop offset=\"1\" stop-color=\"#CFCFDB\"/>\n</linearGradient>\n<linearGradient id=\"paint1_linear_2945_183\" x1=\"620\" y1=\"-483.43\" x2=\"620\" y2=\"1060\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#F8F8F8\"/>\n<stop offset=\"1\" stop-color=\"#E9EDF1\"/>\n</linearGradient>\n<clipPath id=\"clip0_2945_183\">\n<rect width=\"1240\" height=\"1080\" fill=\"white\"/>\n</clipPath>\n</defs>\n</svg>\n",
+        full: "<svg width=\"1240\" height=\"1080\" viewBox=\"0 0 1240 1080\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_2945_201)\">\n<rect width=\"1240\" height=\"1080\" fill=\"url(#paint0_linear_2945_201)\"/>\n<g filter=\"url(#filter0_di_2945_201)\">\n<rect y=\"188\" width=\"1240\" height=\"872\" fill=\"url(#paint1_linear_2945_201)\"/>\n</g>\n</g>\n<defs>\n<filter id=\"filter0_di_2945_201\" x=\"-12\" y=\"180\" width=\"1264\" height=\"896\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"4\"/>\n<feGaussianBlur stdDeviation=\"6\"/>\n<feComposite in2=\"hardAlpha\" operator=\"out\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_2945_201\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_2945_201\" result=\"shape\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"-4\"/>\n<feGaussianBlur stdDeviation=\"4\"/>\n<feComposite in2=\"hardAlpha\" operator=\"arithmetic\" k2=\"-1\" k3=\"1\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0\"/>\n<feBlend mode=\"normal\" in2=\"shape\" result=\"effect2_innerShadow_2945_201\"/>\n</filter>\n<linearGradient id=\"paint0_linear_2945_201\" x1=\"620\" y1=\"0\" x2=\"620\" y2=\"1080\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#EFEFF2\"/>\n<stop offset=\"1\" stop-color=\"#CFCFDB\"/>\n</linearGradient>\n<linearGradient id=\"paint1_linear_2945_201\" x1=\"620\" y1=\"-483.43\" x2=\"620\" y2=\"1060\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#F8F8F8\"/>\n<stop offset=\"1\" stop-color=\"#E9EDF1\"/>\n</linearGradient>\n<clipPath id=\"clip0_2945_201\">\n<rect width=\"1240\" height=\"1080\" fill=\"white\"/>\n</clipPath>\n</defs>\n</svg>\n"
+    }),
+    dark: Object.freeze({
+        margin: "<svg width=\"1240\" height=\"1080\" viewBox=\"0 0 1240 1080\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_2945_175)\">\n<rect width=\"1240\" height=\"1080\" fill=\"url(#paint0_linear_2945_175)\"/>\n<g filter=\"url(#filter0_di_2945_175)\">\n<rect x=\"20\" y=\"188\" width=\"1200\" height=\"872\" rx=\"40\" fill=\"url(#paint1_linear_2945_175)\"/>\n</g>\n</g>\n<defs>\n<filter id=\"filter0_di_2945_175\" x=\"8\" y=\"180\" width=\"1224\" height=\"896\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"4\"/>\n<feGaussianBlur stdDeviation=\"6\"/>\n<feComposite in2=\"hardAlpha\" operator=\"out\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0.105882 0 0 0 0 0.105882 0 0 0 0 0.105882 0 0 0 0.15 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_2945_175\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_2945_175\" result=\"shape\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"-8\"/>\n<feGaussianBlur stdDeviation=\"4\"/>\n<feComposite in2=\"hardAlpha\" operator=\"arithmetic\" k2=\"-1\" k3=\"1\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.075 0\"/>\n<feBlend mode=\"normal\" in2=\"shape\" result=\"effect2_innerShadow_2945_175\"/>\n</filter>\n<linearGradient id=\"paint0_linear_2945_175\" x1=\"620\" y1=\"0\" x2=\"620\" y2=\"1080\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#2A2A2A\"/>\n<stop offset=\"1\" stop-color=\"#1E1E1E\"/>\n</linearGradient>\n<linearGradient id=\"paint1_linear_2945_175\" x1=\"620\" y1=\"-483.43\" x2=\"620\" y2=\"1060\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#424242\"/>\n<stop offset=\"1\" stop-color=\"#282828\"/>\n</linearGradient>\n<clipPath id=\"clip0_2945_175\">\n<rect width=\"1240\" height=\"1080\" fill=\"white\"/>\n</clipPath>\n</defs>\n</svg>\n",
+        full: "<svg width=\"1240\" height=\"1080\" viewBox=\"0 0 1240 1080\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_2945_204)\">\n<rect width=\"1240\" height=\"1080\" fill=\"url(#paint0_linear_2945_204)\"/>\n<g filter=\"url(#filter0_di_2945_204)\">\n<rect y=\"188\" width=\"1240\" height=\"872\" fill=\"url(#paint1_linear_2945_204)\"/>\n</g>\n</g>\n<defs>\n<filter id=\"filter0_di_2945_204\" x=\"-12\" y=\"180\" width=\"1264\" height=\"896\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"4\"/>\n<feGaussianBlur stdDeviation=\"6\"/>\n<feComposite in2=\"hardAlpha\" operator=\"out\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0.105882 0 0 0 0 0.105882 0 0 0 0 0.105882 0 0 0 0.15 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_2945_204\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_2945_204\" result=\"shape\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"-8\"/>\n<feGaussianBlur stdDeviation=\"4\"/>\n<feComposite in2=\"hardAlpha\" operator=\"arithmetic\" k2=\"-1\" k3=\"1\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.075 0\"/>\n<feBlend mode=\"normal\" in2=\"shape\" result=\"effect2_innerShadow_2945_204\"/>\n</filter>\n<linearGradient id=\"paint0_linear_2945_204\" x1=\"620\" y1=\"0\" x2=\"620\" y2=\"1080\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#2A2A2A\"/>\n<stop offset=\"1\" stop-color=\"#1E1E1E\"/>\n</linearGradient>\n<linearGradient id=\"paint1_linear_2945_204\" x1=\"620\" y1=\"-483.43\" x2=\"620\" y2=\"1060\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#424242\"/>\n<stop offset=\"1\" stop-color=\"#282828\"/>\n</linearGradient>\n<clipPath id=\"clip0_2945_204\">\n<rect width=\"1240\" height=\"1080\" fill=\"white\"/>\n</clipPath>\n</defs>\n</svg>\n"
+    })
+});
+const BACKGROUND_WEBM_SETTINGS = Object.freeze({
+    width: 1920,
+    height: 1080,
+    fps: 30,
+    durationMs: 8000,
+    videoBitsPerSecond: 16_000_000,
+    fileName: 'Cocoon_Background.webm'
+});
+const BACKGROUND_MP4_SETTINGS = Object.freeze({
+    width: 1920,
+    height: 1080,
+    fps: 30,
+    durationMs: 8000,
+    fileName: 'Cocoon_Background.mp4'
+});
+const BACKGROUND_OVERLAY_DEFAULTS = Object.freeze({ scale: 50, x: 0, y: 0, rot: 0 });
+const BACKGROUND_ANIMATION_LABELS = Object.freeze({
+    drift: 'Tile Drift',
+    ripple: 'Ripple',
+    echo: 'Tile Echo',
+    tapEcho: 'Tap Echo',
+    swap: 'Vertical Swap',
+    swapDrift: 'Diagonal Column Flow',
+    diagonalColumnFlowContinuous: 'Diagonal Column Flow Continuous',
+    diagonalColumnFlowVariable: 'Diagonal Column Flow Variable Speed'
+});
+const FFMPEG_WASM_SOURCES = Object.freeze({
+    local: Object.freeze({
+        label: 'local',
+        ffmpeg: 'vendor/ffmpeg/ffmpeg.js',
+        coreJs: 'vendor/ffmpeg/ffmpeg-core.js',
+        coreWasm: 'vendor/ffmpeg/ffmpeg-core.wasm',
+        useBlobUrls: true
+    }),
+    cdn: Object.freeze({
+        label: 'cdn',
+        ffmpeg: 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js',
+        coreJs: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
+        coreWasm: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm',
+        useBlobUrls: true
+    })
+});
 
 
 // --- APP STATE ---
@@ -63,8 +153,23 @@ const state = {
         globalSvgImg: null,
         globalFolderDataUrl: null,
         customBgDataUrl: null,
+        backgroundOverlayDataUrl: null,
+        backgroundOverlayImage: null,
+        backgroundOverlayFileName: '',
         dynamicGenericUrls: {},
-        dynamicDockUrls: {}
+        dynamicDockUrls: {},
+        backgroundPreviewUrl: null,
+        backgroundPreviewImage: null,
+        backgroundPreviewFrame: null,
+        backgroundPreviewRenderId: 0,
+        backgroundExternalPreviewImage: null,
+        backgroundExternalPreviewKey: '',
+        backgroundExternalFolderPreviewImage: null,
+        backgroundExternalFolderPreviewKey: '',
+        ffmpegLoadPromise: null,
+        ffmpegInstance: null,
+        ffmpegBlobUrls: [],
+        ffmpegSource: null
     },
     missingAssets: new Set(),
     autoColor: {
@@ -79,6 +184,16 @@ const state = {
         apps: true
     },
     generatorStyle: DEFAULTS.style,
+    folderPreviewPalette: { ...DEFAULTS.colors },
+    backgroundExportFormat: 'png',
+    backgroundVideoDurationMs: BACKGROUND_WEBM_SETTINGS.durationMs,
+    backgroundAnimation: 'drift',
+    backgroundScreen: 'main',
+    backgroundExternalTheme: 'light',
+    backgroundExternalVariant: 'margin',
+    backgroundExternalPanelCustomTop: '#F8F8F8',
+    backgroundExternalPanelCustomBottom: '#E9EDF1',
+    backgroundExternalShowFolders: false,
     temporaryScale: {
         active: false,
         previous: null,
@@ -93,7 +208,7 @@ const els = {
     grid: document.getElementById('icon-grid'),
     countDisplay: document.getElementById('selection-count'),
     downloadBtn: document.getElementById('download-btn'),
-    tabBtns: document.querySelectorAll('.tab-btn'),
+    tabBtns: document.querySelectorAll('.tab-btn[data-tab]'),
     mainTabBtns: document.querySelectorAll('.main-tab-btn'),
     dashboard: document.querySelector('.dashboard'),
     styleSelect: document.getElementById('global-style'),
@@ -120,10 +235,65 @@ const els = {
     folderTiltRow: document.getElementById('tilt-control-row') || document.getElementById('folder-tilt')?.parentElement,
     appearanceTitle: document.getElementById('appearance-title'),
     dockNote: document.getElementById('dock-note'),
+    backgroundNote: document.getElementById('background-note'),
     adjustmentsTitle: document.getElementById('adjustments-title'),
     iconControlsGroup: document.getElementById('icon-controls-group') || document.querySelectorAll('.control-group')[1],
-    subTabsContainer: document.getElementById('sub-tabs') || document.querySelectorAll('.tabs')[1]
+    subTabsContainer: document.getElementById('sub-tabs') || document.querySelectorAll('.tabs')[1],
+    backgroundPanel: document.getElementById('background-panel'),
+    backgroundPreviewImage: document.getElementById('background-preview-image'),
+    backgroundPreviewCanvas: document.getElementById('background-preview-canvas'),
+    backgroundOriginalPresetBtn: document.getElementById('background-original-preset-btn'),
+    backgroundExportBtns: document.querySelectorAll('.background-export-btn[data-export-format]'),
+    backgroundScreenTabs: document.getElementById('background-screen-tabs'),
+    backgroundScreenBtns: document.querySelectorAll('.background-screen-btn[data-background-screen]'),
+    backgroundExternalThemeGroup: document.getElementById('background-external-theme-group'),
+    backgroundExternalThemeBtns: document.querySelectorAll('.background-external-theme-btn[data-external-theme]'),
+    backgroundExternalVariantGroup: document.getElementById('background-external-variant-group'),
+    backgroundExternalVariantBtns: document.querySelectorAll('.background-external-variant-btn[data-external-variant]'),
+    backgroundExternalPreviewGroup: document.getElementById('background-external-preview-group'),
+    backgroundExternalShowFolders: document.getElementById('background-external-show-folders'),
+    backgroundExternalPanelGroup: document.getElementById('background-external-panel-group'),
+    backgroundExternalPanelCustom: document.getElementById('background-external-panel-custom'),
+    backgroundExternalPanelTop: document.getElementById('background-external-panel-top'),
+    backgroundExternalPanelBottom: document.getElementById('background-external-panel-bottom'),
+    backgroundExternalPanelTopValue: document.getElementById('background-external-panel-top-value'),
+    backgroundExternalPanelBottomValue: document.getElementById('background-external-panel-bottom-value'),
+    backgroundExternalPanelResetBtn: document.getElementById('background-external-panel-reset-btn'),
+    backgroundExternalPanelMatchBtn: document.getElementById('background-external-panel-match-btn'),
+    backgroundExportHelp: document.getElementById('background-export-help'),
+    backgroundMetaDetail: document.getElementById('background-meta-detail'),
+    backgroundInlineControls: document.getElementById('background-inline-controls'),
+    backgroundAnimationGroup: document.getElementById('background-animation-group'),
+    backgroundAnimationSelect: document.getElementById('background-animation-select'),
+    backgroundOverlayGroup: document.getElementById('background-overlay-group'),
+    backgroundOverlayUploadBtn: document.getElementById('background-overlay-upload-btn'),
+    backgroundOverlayUpload: document.getElementById('background-overlay-upload'),
+    backgroundOverlayResetBtn: document.getElementById('background-overlay-reset-btn'),
+    backgroundOverlayRemoveBtn: document.getElementById('background-overlay-remove-btn'),
+    backgroundOverlayNote: document.getElementById('background-overlay-note'),
+    backgroundOverlayScale: document.getElementById('background-overlay-scale'),
+    backgroundOverlayX: document.getElementById('background-overlay-x'),
+    backgroundOverlayY: document.getElementById('background-overlay-y'),
+    backgroundOverlayRot: document.getElementById('background-overlay-rot'),
+    backgroundOverlayScaleValue: document.getElementById('background-overlay-scale-value'),
+    backgroundOverlayXValue: document.getElementById('background-overlay-x-value'),
+    backgroundOverlayYValue: document.getElementById('background-overlay-y-value'),
+    backgroundOverlayRotValue: document.getElementById('background-overlay-rot-value'),
+    backgroundVideoGroup: document.getElementById('background-video-group'),
+    backgroundDurationSlider: document.getElementById('background-duration-slider'),
+    backgroundDurationValue: document.getElementById('background-duration-value')
 };
+
+function setDownloadButtonLoading(label) {
+    if (!els.downloadBtn) return;
+    els.downloadBtn.classList.add('is-loading');
+    els.downloadBtn.textContent = label;
+}
+
+function clearDownloadButtonLoading() {
+    if (!els.downloadBtn) return;
+    els.downloadBtn.classList.remove('is-loading');
+}
 
 // --- SMALL UTILITIES ---
 // Escape user-facing names before injecting them into card markup
@@ -175,7 +345,7 @@ function isCustomStyleContext() {
 
 // Disable the Auto button in contexts where recoloring is intentionally unavailable
 function isAutoColorDisabledContext() {
-    return isAppsTabContext() || isCustomStyleContext();
+    return state.mode === 'background' || isAppsTabContext() || isCustomStyleContext();
 }
 
 // Keep the Auto button state aligned with Apps and Custom style contexts
@@ -223,6 +393,15 @@ function syncPaletteControls() {
         button.setAttribute('aria-pressed', String(isActive));
     });
 
+    if (els.backgroundOriginalPresetBtn) {
+        const isOriginal = state.mode === 'background'
+            && normalizeHex(BACKGROUND_DEFAULT_PRESET.top) === top
+            && normalizeHex(BACKGROUND_DEFAULT_PRESET.bottom) === bottom;
+        els.backgroundOriginalPresetBtn.classList.toggle('active', isOriginal);
+        els.backgroundOriginalPresetBtn.setAttribute('aria-pressed', String(isOriginal));
+    }
+
+    syncBackgroundExportControls();
     syncAutoColorButtonState();
 }
 
@@ -267,6 +446,938 @@ function createSvgDataUrl(svgString) {
 }
 
 // Return a filename without its extension for uploaded custom icons
+
+
+// Return the editable wallpaper template, falling back to the first registered background template
+function getBackgroundTemplate() {
+    return backgroundSvgTemplates.cocoonTiles || Object.values(backgroundSvgTemplates)[0] || '';
+}
+
+function getBackgroundVideoDurationMs() {
+    return Math.max(1000, Number(state.backgroundVideoDurationMs) || BACKGROUND_WEBM_SETTINGS.durationMs);
+}
+
+function getBackgroundVideoDurationSeconds() {
+    return Math.round(getBackgroundVideoDurationMs() / 1000);
+}
+
+function getBackgroundWebmSettings() {
+    return { ...BACKGROUND_WEBM_SETTINGS, durationMs: getBackgroundVideoDurationMs() };
+}
+
+function getBackgroundMp4Settings() {
+    return { ...BACKGROUND_MP4_SETTINGS, durationMs: getBackgroundVideoDurationMs() };
+}
+
+function getBackgroundAnimation() {
+    return BACKGROUND_ANIMATION_LABELS[state.backgroundAnimation]
+        ? state.backgroundAnimation
+        : 'drift';
+}
+
+function getBackgroundAnimationLabel() {
+    return BACKGROUND_ANIMATION_LABELS[getBackgroundAnimation()] || BACKGROUND_ANIMATION_LABELS.drift;
+}
+
+function getBackgroundScreen() {
+    return state.backgroundScreen === 'external' ? 'external' : 'main';
+}
+
+function isBackgroundExternalScreen() {
+    return state.mode === 'background' && getBackgroundScreen() === 'external';
+}
+
+function getBackgroundExternalVariant() {
+    return BACKGROUND_EXTERNAL_VARIANT_LABELS[state.backgroundExternalVariant]
+        ? state.backgroundExternalVariant
+        : 'margin';
+}
+
+function getBackgroundExternalVariantLabel() {
+    return BACKGROUND_EXTERNAL_VARIANT_LABELS[getBackgroundExternalVariant()] || BACKGROUND_EXTERNAL_VARIANT_LABELS.margin;
+}
+
+function getColorLuminance(hex) {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return 1;
+
+    const channel = value => {
+        const normalized = value / 255;
+        return normalized <= 0.03928
+            ? normalized / 12.92
+            : Math.pow((normalized + 0.055) / 1.055, 2.4);
+    };
+
+    return 0.2126 * channel(rgb.r) + 0.7152 * channel(rgb.g) + 0.0722 * channel(rgb.b);
+}
+
+
+function getFolderPreviewPalette() {
+    const palette = state.folderPreviewPalette || DEFAULTS.colors;
+    return {
+        top: normalizeHex(palette.top) || DEFAULTS.colors.top,
+        bottom: normalizeHex(palette.bottom) || DEFAULTS.colors.bottom
+    };
+}
+
+function rememberFolderPreviewPaletteFromControls() {
+    if (state.mode !== 'generator' || state.activeTab === 'apps') return;
+
+    state.folderPreviewPalette = {
+        top: normalizeHex(els.colorTop.value) || DEFAULTS.colors.top,
+        bottom: normalizeHex(els.colorBottom.value) || DEFAULTS.colors.bottom
+    };
+    state.assets.backgroundExternalFolderPreviewKey = '';
+}
+
+function getExternalPreviewFolderKey() {
+    const style = els.styleSelect?.value || DEFAULTS.style;
+    const palette = getFolderPreviewPalette();
+    const customKey = style === 'custom' ? state.assets.customBgDataUrl || '' : '';
+    return [style, palette.top, palette.bottom, customKey].join('|');
+}
+
+function syncExternalPreviewFolderImage() {
+    const style = els.styleSelect?.value || DEFAULTS.style;
+
+    if (style === 'icon_only') {
+        state.assets.backgroundExternalFolderPreviewImage = null;
+        state.assets.backgroundExternalFolderPreviewKey = '';
+        return;
+    }
+
+    if (style === 'custom') {
+        state.assets.backgroundExternalFolderPreviewImage = state.assets.globalSvgImg;
+        state.assets.backgroundExternalFolderPreviewKey = getExternalPreviewFolderKey();
+        return;
+    }
+
+    const key = getExternalPreviewFolderKey();
+    if (state.assets.backgroundExternalFolderPreviewKey === key && state.assets.backgroundExternalFolderPreviewImage) return;
+
+    state.assets.backgroundExternalFolderPreviewImage = null;
+    state.assets.backgroundExternalFolderPreviewKey = key;
+
+    const img = new Image();
+    img.onload = () => {
+        if (state.assets.backgroundExternalFolderPreviewKey !== key) return;
+        state.assets.backgroundExternalFolderPreviewImage = img;
+        if (isBackgroundExternalScreen() && state.backgroundExternalShowFolders) {
+            drawBackgroundPreviewFrame(0);
+        }
+    };
+    img.src = getColoredFolderDataUrl(style, getFolderPreviewPalette());
+}
+
+function isExternalDarkPalette(palette = getPalette()) {
+    return getColorLuminance(palette.bottom) < 0.28;
+}
+
+function getBackgroundExternalTheme() {
+    return isExternalDarkPalette() ? 'dark' : 'light';
+}
+
+function getBackgroundExternalThemeLabel() {
+    if (isExternalLightPreset()) return BACKGROUND_EXTERNAL_THEME_LABELS.light;
+    if (isExternalDarkPreset()) return BACKGROUND_EXTERNAL_THEME_LABELS.dark;
+    return 'Custom Theme';
+}
+
+function isExternalLightPreset() {
+    const palette = getPalette();
+    return normalizeHex(palette.top) === normalizeHex(BACKGROUND_DEFAULT_PRESET.top)
+        && normalizeHex(palette.bottom) === normalizeHex(BACKGROUND_DEFAULT_PRESET.bottom);
+}
+
+function isExternalDarkPreset() {
+    const palette = getPalette();
+    return normalizeHex(palette.top) === normalizeHex(BACKGROUND_DARK_PRESET.top)
+        && normalizeHex(palette.bottom) === normalizeHex(BACKGROUND_DARK_PRESET.bottom);
+}
+
+function isExternalFolderBlackPreset() {
+    const palette = getPalette();
+    return normalizeHex(palette.top) === '#383838'
+        && normalizeHex(palette.bottom) === '#2C2C2C';
+}
+
+function isExternalBlackPanelPreset() {
+    return isExternalDarkPreset();
+}
+
+function getDefaultExternalPanelColors() {
+    return isExternalDarkPreset()
+        ? { top: '#424242', bottom: '#282828' }
+        : { top: '#F8F8F8', bottom: '#E9EDF1' };
+}
+
+function setExternalPanelColors(top, bottom, { refresh = true } = {}) {
+    state.backgroundExternalPanelCustomTop = normalizeHex(top) || '#F8F8F8';
+    state.backgroundExternalPanelCustomBottom = normalizeHex(bottom) || '#E9EDF1';
+    state.assets.backgroundExternalPreviewKey = '';
+
+    if (refresh) {
+        syncBackgroundExportControls();
+        updateBackgroundPreview();
+        updateActionBar();
+    }
+}
+
+function resetExternalPanelColorsToThemeDefault({ refresh = true } = {}) {
+    const colors = getDefaultExternalPanelColors();
+    setExternalPanelColors(colors.top, colors.bottom, { refresh });
+}
+
+function matchExternalPanelColorsToBackground({ refresh = true } = {}) {
+    const palette = getPalette();
+    const top = isExternalLightPreset()
+        ? BACKGROUND_DEFAULT_PRESET.top
+        : isExternalDarkPreset()
+            ? BACKGROUND_DARK_PRESET.top
+            : palette.top;
+    const bottom = isExternalLightPreset()
+        ? BACKGROUND_DEFAULT_PRESET.bottom
+        : isExternalDarkPreset()
+            ? BACKGROUND_DARK_PRESET.bottom
+            : palette.bottom;
+
+    setExternalPanelColors(
+        mixHexColors(top, '#FFFFFF', 0.36),
+        mixHexColors(bottom, '#FFFFFF', 0.44),
+        { refresh }
+    );
+}
+
+function getBackgroundPreviewSize() {
+    return isBackgroundExternalScreen() ? BACKGROUND_EXTERNAL_SIZE : BACKGROUND_PREVIEW_SIZE;
+}
+
+function syncBackgroundPreviewCanvasSize() {
+    const canvas = els.backgroundPreviewCanvas;
+    if (!canvas) return;
+
+    const size = getBackgroundPreviewSize();
+    if (canvas.width !== size.width) canvas.width = size.width;
+    if (canvas.height !== size.height) canvas.height = size.height;
+    canvas.style.aspectRatio = `${size.width} / ${size.height}`;
+}
+
+function rgbToHex({ r, g, b }) {
+    const toHex = value => Math.max(0, Math.min(255, Math.round(value)))
+        .toString(16)
+        .padStart(2, '0')
+        .toUpperCase();
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function rgbToHsl({ r, g, b }) {
+    const rn = r / 255;
+    const gn = g / 255;
+    const bn = b / 255;
+    const max = Math.max(rn, gn, bn);
+    const min = Math.min(rn, gn, bn);
+    const delta = max - min;
+
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
+
+    if (delta !== 0) {
+        s = delta / (1 - Math.abs(2 * l - 1));
+        switch (max) {
+            case rn:
+                h = 60 * (((gn - bn) / delta) % 6);
+                break;
+            case gn:
+                h = 60 * (((bn - rn) / delta) + 2);
+                break;
+            default:
+                h = 60 * (((rn - gn) / delta) + 4);
+                break;
+        }
+    }
+
+    if (h < 0) h += 360;
+
+    return { h, s, l };
+}
+
+function getRelativeLuminance(hex) {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return 0;
+
+    const toLinear = channel => {
+        const value = channel / 255;
+        return value <= 0.03928
+            ? value / 12.92
+            : Math.pow((value + 0.055) / 1.055, 2.4);
+    };
+
+    const r = toLinear(rgb.r);
+    const g = toLinear(rgb.g);
+    const b = toLinear(rgb.b);
+    return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+}
+
+function tintTowardPanel(baseHex, options = {}) {
+    const rgb = hexToRgb(baseHex);
+    if (!rgb) return baseHex;
+
+    const { h, s, l } = rgbToHsl(rgb);
+    const saturationScale = Math.max(0, Math.min(1, options.saturationScale ?? 0.4));
+    const lightnessBoost = options.lightnessBoost ?? 0.2;
+    const minLightness = options.minLightness ?? 0.82;
+    const tintHex = options.tintHex || '#FFFFFF';
+    const tintAmount = Math.max(0, Math.min(1, options.tintAmount ?? 0.12));
+
+    const toned = hslToHex(
+        h,
+        Math.max(0, Math.min(100, s * 100 * saturationScale)),
+        Math.max(0, Math.min(100, Math.max(minLightness * 100, (l * 100) + (lightnessBoost * 100))))
+    );
+
+    return mixHexColors(toned, tintHex, tintAmount);
+}
+
+function ensurePanelLightness(panelHex, backgroundHex, minLift = 0.14) {
+    let candidate = panelHex;
+    const target = Math.min(1, getRelativeLuminance(backgroundHex) + Math.max(0, minLift));
+    let tries = 0;
+
+    while (tries < 10 && getRelativeLuminance(candidate) < target) {
+        candidate = mixHexColors(candidate, '#FFFFFF', 0.2);
+        tries += 1;
+    }
+
+    return candidate;
+}
+
+function mixHexColors(baseHex, targetHex, amount) {
+    const base = hexToRgb(baseHex);
+    const target = hexToRgb(targetHex);
+    if (!base || !target) return baseHex;
+
+    const t = Math.max(0, Math.min(1, Number(amount) || 0));
+    return rgbToHex({
+        r: base.r + (target.r - base.r) * t,
+        g: base.g + (target.g - base.g) * t,
+        b: base.b + (target.b - base.b) * t
+    });
+}
+
+function isBackgroundDefaultPalette() {
+    const palette = getPalette();
+    return normalizeHex(palette.top) === normalizeHex(BACKGROUND_DEFAULT_PRESET.top)
+        && normalizeHex(palette.bottom) === normalizeHex(BACKGROUND_DEFAULT_PRESET.bottom);
+}
+
+function getExternalPanelLiftAmount(baseHex, isBottom = false) {
+    const luminance = getRelativeLuminance(baseHex);
+    const baseLift = isBottom ? 0.16 : 0.12;
+    const darkLift = Math.max(0, 0.38 - luminance) * (isBottom ? 0.28 : 0.22);
+    const brightReduction = Math.max(0, luminance - 0.58) * 0.16;
+
+    return Math.max(0.08, Math.min(0.28, baseLift + darkLift - brightReduction));
+}
+
+function getExternalBackgroundColors() {
+    const palette = getPalette();
+    const backgroundTop = isExternalLightPreset()
+        ? BACKGROUND_DEFAULT_PRESET.top
+        : isExternalDarkPreset()
+            ? BACKGROUND_DARK_PRESET.top
+            : palette.top;
+    const backgroundBottom = isExternalLightPreset()
+        ? BACKGROUND_DEFAULT_PRESET.bottom
+        : isExternalDarkPreset()
+            ? BACKGROUND_DARK_PRESET.bottom
+            : palette.bottom;
+    const defaultPanel = getDefaultExternalPanelColors();
+
+    return {
+        backgroundTop,
+        backgroundBottom,
+        blockTop: normalizeHex(state.backgroundExternalPanelCustomTop) || defaultPanel.top,
+        blockBottom: normalizeHex(state.backgroundExternalPanelCustomBottom) || defaultPanel.bottom,
+        isDark: isExternalDarkPreset()
+    };
+}
+
+function getExternalBackgroundSvgKey() {
+    const colors = getExternalBackgroundColors();
+    return [
+        colors.backgroundTop,
+        colors.backgroundBottom,
+        colors.blockTop,
+        colors.blockBottom,
+        colors.isDark ? 'dark' : 'light',
+        state.backgroundExternalPanelCustomTop,
+        state.backgroundExternalPanelCustomBottom,
+        getBackgroundExternalVariant()
+    ].join('|');
+}
+
+function getExternalGradientOnlySvg(colors) {
+    return `<svg width="1240" height="1080" viewBox="0 0 1240 1080" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="1240" height="1080" fill="url(#external_gradient_only)"/><defs><linearGradient id="external_gradient_only" x1="620" y1="0" x2="620" y2="1080" gradientUnits="userSpaceOnUse"><stop stop-color="${colors.backgroundTop}"/><stop offset="1" stop-color="${colors.backgroundBottom}"/></linearGradient></defs></svg>`;
+}
+
+function recolorExternalBackgroundSvg(svgText, colors) {
+    return svgText
+        .replaceAll('#EFEFF2', colors.backgroundTop)
+        .replaceAll('#EFEFF3', colors.backgroundTop)
+        .replaceAll('#CFCFDB', colors.backgroundBottom)
+        .replaceAll('#CECEDA', colors.backgroundBottom)
+        .replaceAll('#2A2A2A', colors.backgroundTop)
+        .replaceAll('#1E1E1E', colors.backgroundBottom)
+        .replaceAll('#F8F8F8', colors.blockTop)
+        .replaceAll('#E9EDF1', colors.blockBottom)
+        .replaceAll('#424242', colors.blockTop)
+        .replaceAll('#282828', colors.blockBottom);
+}
+
+function getColoredExternalBackgroundSvg() {
+    const variant = getBackgroundExternalVariant();
+    const colors = getExternalBackgroundColors();
+
+    if (variant === 'gradient') {
+        return getExternalGradientOnlySvg(colors);
+    }
+
+    const theme = colors.isDark ? 'dark' : 'light';
+    const themeTemplates = BACKGROUND_EXTERNAL_SVG_TEMPLATES[theme] || BACKGROUND_EXTERNAL_SVG_TEMPLATES.light;
+    const template = themeTemplates[variant] || themeTemplates.margin;
+    return recolorExternalBackgroundSvg(template, colors);
+}
+
+function sanitizeExternalSvgForCanvas(svgText) {
+    return svgText
+        .replace(/<\?xml[^>]*>/gi, '')
+        .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
+        .replace(/<script\b[\s\S]*?<\/script>/gi, '')
+        .replace(/<foreignObject\b[\s\S]*?<\/foreignObject>/gi, '')
+        .replace(/\s+on[a-z]+="[^"]*"/gi, '')
+        .replace(/\s+on[a-z]+='[^']*'/gi, '');
+}
+
+async function loadExternalBackgroundImage() {
+    const svgText = sanitizeExternalSvgForCanvas(getColoredExternalBackgroundSvg());
+    return loadImage(svgTextToDataUrl(svgText), 6000);
+}
+
+function drawExternalBackgroundImage(ctx, img, width, height) {
+    ctx.clearRect(0, 0, width, height);
+    ctx.drawImage(img, 0, 0, width, height);
+}
+
+function renderExternalBackgroundFallbackFrame(ctx, width, height) {
+    const colors = getExternalBackgroundColors();
+    const scaleX = width / BACKGROUND_EXTERNAL_SIZE.width;
+    const scaleY = height / BACKGROUND_EXTERNAL_SIZE.height;
+    const variant = getBackgroundExternalVariant();
+    const isDarkTheme = colors.isDark;
+
+    ctx.clearRect(0, 0, width, height);
+
+    const backgroundGradient = ctx.createLinearGradient(0, 0, 0, height);
+    backgroundGradient.addColorStop(0, colors.backgroundTop);
+    backgroundGradient.addColorStop(1, colors.backgroundBottom);
+    ctx.fillStyle = backgroundGradient;
+    ctx.fillRect(0, 0, width, height);
+
+    if (variant === 'gradient') return;
+
+    const rect = variant === 'full'
+        ? { x: 0, y: 188, width: 1240, height: 872, radius: 0 }
+        : { x: 20, y: 188, width: 1200, height: 872, radius: 40 };
+
+    const x = rect.x * scaleX;
+    const y = rect.y * scaleY;
+    const rectWidth = rect.width * scaleX;
+    const rectHeight = rect.height * scaleY;
+    const radius = rect.radius * Math.min(scaleX, scaleY);
+    const blockTop = colors.blockTop;
+    const blockBottom = colors.blockBottom;
+
+    ctx.save();
+    ctx.shadowColor = isDarkTheme ? 'rgba(27,27,27,0.15)' : 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 12 * Math.min(scaleX, scaleY);
+    ctx.shadowOffsetY = 4 * scaleY;
+    drawRoundedRectPath(ctx, x, y, rectWidth, rectHeight, radius);
+    const blockGradient = ctx.createLinearGradient(0, y, 0, y + rectHeight);
+    blockGradient.addColorStop(0, blockTop);
+    blockGradient.addColorStop(1, blockBottom);
+    ctx.fillStyle = blockGradient;
+    ctx.fill();
+    ctx.restore();
+}
+
+function renderExternalBackgroundFrame(ctx, width, height) {
+    const img = state.assets.backgroundExternalPreviewImage;
+    if (img) {
+        drawExternalBackgroundImage(ctx, img, width, height);
+        return;
+    }
+
+    renderExternalBackgroundFallbackFrame(ctx, width, height);
+}
+
+function getExternalPreviewFolderImage() {
+    if (!state.backgroundExternalShowFolders) return null;
+
+    const style = els.styleSelect?.value || DEFAULTS.style;
+    if (style === 'icon_only') return null;
+
+    syncExternalPreviewFolderImage();
+    return state.assets.backgroundExternalFolderPreviewImage || null;
+}
+
+function drawExternalPreviewFolders(ctx, width, height) {
+    const folderImg = getExternalPreviewFolderImage();
+    if (!folderImg || !folderImg.complete) return;
+
+    const scale = Math.min(width / BACKGROUND_EXTERNAL_SIZE.width, height / BACKGROUND_EXTERNAL_SIZE.height);
+    const folderSize = 172 * scale;
+    const placements = [
+        { x: 0.27, y: 0.51, size: 0.95, rot: -7, alpha: 0.96 },
+        { x: 0.50, y: 0.47, size: 1.08, rot: 4, alpha: 1 },
+        { x: 0.72, y: 0.55, size: 0.98, rot: -3, alpha: 0.98 },
+        { x: 0.59, y: 0.74, size: 0.78, rot: 8, alpha: 0.9 }
+    ];
+
+    placements.forEach(item => {
+        const size = folderSize * item.size;
+        ctx.save();
+        ctx.globalAlpha = item.alpha;
+        ctx.translate(width * item.x, height * item.y);
+        ctx.rotate((item.rot * Math.PI) / 180);
+        ctx.shadowColor = 'rgba(15, 23, 42, 0.22)';
+        ctx.shadowBlur = 18 * scale;
+        ctx.shadowOffsetY = 8 * scale;
+        ctx.drawImage(folderImg, -size / 2, -size / 2, size, size);
+        ctx.restore();
+    });
+}
+
+
+function getBackgroundOverlayImage() {
+    return state.assets.backgroundOverlayImage || null;
+}
+
+function syncBackgroundOverlayControlsState() {
+    const hasOverlay = Boolean(getBackgroundOverlayImage());
+
+    if (els.backgroundOverlayGroup) {
+        els.backgroundOverlayGroup.classList.remove('is-disabled');
+    }
+
+    if (els.backgroundOverlayNote) {
+        els.backgroundOverlayNote.textContent = hasOverlay
+            ? `Loaded: ${state.assets.backgroundOverlayFileName || 'Overlay image'}`
+            : 'No overlay image selected';
+    }
+
+    [
+        els.backgroundOverlayScale,
+        els.backgroundOverlayX,
+        els.backgroundOverlayY,
+        els.backgroundOverlayRot,
+        els.backgroundOverlayResetBtn,
+        els.backgroundOverlayRemoveBtn
+    ].forEach(control => {
+        if (control) control.disabled = !hasOverlay;
+    });
+}
+
+function applyBackgroundOverlayControls() {
+    if (els.backgroundOverlayScaleValue && els.backgroundOverlayScale) els.backgroundOverlayScaleValue.textContent = `${els.backgroundOverlayScale.value}%`;
+    if (els.backgroundOverlayXValue && els.backgroundOverlayX) els.backgroundOverlayXValue.textContent = els.backgroundOverlayX.value;
+    if (els.backgroundOverlayYValue && els.backgroundOverlayY) els.backgroundOverlayYValue.textContent = els.backgroundOverlayY.value;
+    if (els.backgroundOverlayRotValue && els.backgroundOverlayRot) els.backgroundOverlayRotValue.textContent = `${els.backgroundOverlayRot.value}°`;
+
+    syncBackgroundOverlayControlsState();
+
+    if (state.mode === 'background') {
+        drawBackgroundPreviewFrame(0);
+    }
+}
+
+function resetBackgroundOverlayControls() {
+    if (els.backgroundOverlayScale) els.backgroundOverlayScale.value = String(BACKGROUND_OVERLAY_DEFAULTS.scale);
+    if (els.backgroundOverlayX) els.backgroundOverlayX.value = String(BACKGROUND_OVERLAY_DEFAULTS.x);
+    if (els.backgroundOverlayY) els.backgroundOverlayY.value = String(BACKGROUND_OVERLAY_DEFAULTS.y);
+    if (els.backgroundOverlayRot) els.backgroundOverlayRot.value = String(BACKGROUND_OVERLAY_DEFAULTS.rot);
+    applyBackgroundOverlayControls();
+}
+
+function syncBackgroundVideoControls() {
+    const isVideoFormat = state.mode === 'background' && !isBackgroundExternalScreen() && getBackgroundExportFormat() !== 'png';
+
+    if (els.backgroundDurationValue) {
+        els.backgroundDurationValue.textContent = `${getBackgroundVideoDurationSeconds()}s`;
+    }
+
+    if (els.backgroundDurationSlider) {
+        els.backgroundDurationSlider.disabled = !isVideoFormat;
+    }
+
+    if (els.backgroundAnimationSelect) {
+        els.backgroundAnimationSelect.value = getBackgroundAnimation();
+        els.backgroundAnimationSelect.disabled = !isVideoFormat;
+    }
+
+    if (els.backgroundInlineControls) {
+        els.backgroundInlineControls.hidden = false;
+        els.backgroundInlineControls.classList.toggle('is-visible', isVideoFormat);
+    }
+
+    if (els.backgroundAnimationGroup) {
+        els.backgroundAnimationGroup.hidden = false;
+        els.backgroundAnimationGroup.classList.toggle('is-visible', isVideoFormat);
+    }
+
+    if (els.backgroundVideoGroup) {
+        els.backgroundVideoGroup.hidden = false;
+        els.backgroundVideoGroup.classList.toggle('is-visible', isVideoFormat);
+    }
+}
+
+function drawBackgroundOverlay(ctx, width, height) {
+    const img = getBackgroundOverlayImage();
+    if (!img) return;
+
+    const scale = Math.max(1, Number(els.backgroundOverlayScale?.value) || BACKGROUND_OVERLAY_DEFAULTS.scale);
+    const offsetX = (Number(els.backgroundOverlayX?.value) || 0) * (width / 200);
+    const offsetY = (Number(els.backgroundOverlayY?.value) || 0) * (height / 200);
+    const rotation = ((Number(els.backgroundOverlayRot?.value) || 0) * Math.PI) / 180;
+    const { width: imageWidth, height: imageHeight } = getImageDimensions(img, width, height);
+    const aspect = imageWidth / imageHeight || 1;
+    const maxDimension = Math.min(width, height) * (scale / 100);
+
+    let drawWidth = maxDimension;
+    let drawHeight = maxDimension;
+
+    if (aspect >= 1) {
+        drawHeight = maxDimension / aspect;
+    } else {
+        drawWidth = maxDimension * aspect;
+    }
+
+    ctx.save();
+    ctx.translate(width / 2 + offsetX, height / 2 + offsetY);
+    ctx.rotate(rotation);
+    ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+    ctx.restore();
+}
+
+// Apply the current Top/Bottom colors to the background SVG template
+function getBackgroundPatternOpacity() {
+    const top = normalizeHex(els.colorTop.value);
+    const bottom = normalizeHex(els.colorBottom.value);
+    const topLuminance = getColorLuminance(top);
+    const bottomLuminance = getColorLuminance(bottom);
+    const averageLuminance = (topLuminance + bottomLuminance) / 2;
+
+    if (averageLuminance < 0.035) return 0.035;
+    if (averageLuminance < 0.08) return 0.045;
+    if (averageLuminance < 0.18) return 0.07;
+    return 0.12;
+}
+
+function getColoredBackgroundSvg() {
+    const palette = getPalette();
+    const template = getBackgroundTemplate();
+    const patternOpacity = getBackgroundPatternOpacity();
+
+    return template
+        .replaceAll('COLOR_TOP', palette.top)
+        .replaceAll('COLOR_BOTTOM', palette.bottom)
+        .replace(/fill="url\(#paint\d+_linear_[^"]+\)" fill-opacity="0\.15"/g, `fill="white" fill-opacity="${patternOpacity}"`);
+}
+
+// Stop the animated Background preview loop
+function stopBackgroundPreviewAnimation() {
+    if (state.assets.backgroundPreviewFrame) {
+        cancelAnimationFrame(state.assets.backgroundPreviewFrame);
+        state.assets.backgroundPreviewFrame = null;
+    }
+}
+
+// Draw one Background preview frame, matching the selected PNG/Video mode
+function drawBackgroundPreviewFrame(progress = 0) {
+    const canvas = els.backgroundPreviewCanvas;
+    if (!canvas) return;
+
+    syncBackgroundPreviewCanvasSize();
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    if (isBackgroundExternalScreen()) {
+        renderExternalBackgroundFrame(ctx, width, height);
+        drawExternalPreviewFolders(ctx, width, height);
+        return;
+    }
+
+    const img = state.assets.backgroundPreviewImage;
+    if (!img) return;
+
+    if (getBackgroundExportFormat() !== 'png') {
+        renderAnimatedBackgroundFrame(ctx, width, height, progress);
+    } else {
+        renderStaticBackgroundFrame(ctx, img, width, height);
+    }
+}
+
+function renderStaticBackgroundFrame(ctx, img, width, height) {
+    ctx.clearRect(0, 0, width, height);
+    ctx.drawImage(img, 0, 0, width, height);
+    drawBackgroundOverlay(ctx, width, height);
+}
+
+// Start the live animated preview when Video export is selected
+function startBackgroundPreviewAnimation() {
+    if (state.mode !== 'background' || getBackgroundExportFormat() === 'png') {
+        stopBackgroundPreviewAnimation();
+        drawBackgroundPreviewFrame(0);
+        return;
+    }
+
+    if (state.assets.backgroundPreviewFrame) return;
+
+    const loop = timestamp => {
+        const durationMs = getBackgroundVideoDurationMs();
+        const progress = (timestamp % durationMs) / durationMs;
+        drawBackgroundPreviewFrame(progress);
+        state.assets.backgroundPreviewFrame = requestAnimationFrame(loop);
+    };
+
+    state.assets.backgroundPreviewFrame = requestAnimationFrame(loop);
+}
+
+// Keep the Background preview aligned with the selected export format
+function syncBackgroundPreviewPlayback() {
+    if (state.mode !== 'background') {
+        stopBackgroundPreviewAnimation();
+        return;
+    }
+
+    if (isBackgroundExternalScreen()) {
+        stopBackgroundPreviewAnimation();
+        drawBackgroundPreviewFrame(0);
+        return;
+    }
+
+    if (getBackgroundExportFormat() !== 'png') {
+        startBackgroundPreviewAnimation();
+    } else {
+        stopBackgroundPreviewAnimation();
+        drawBackgroundPreviewFrame(0);
+    }
+}
+
+// Refresh the large Background mode preview
+async function updateBackgroundPreview() {
+    const canvas = els.backgroundPreviewCanvas;
+    const template = getBackgroundTemplate();
+    if (!canvas) return;
+
+    syncBackgroundPreviewCanvasSize();
+
+    if (isBackgroundExternalScreen()) {
+        state.assets.backgroundPreviewImage = null;
+        stopBackgroundPreviewAnimation();
+
+        const externalKey = getExternalBackgroundSvgKey();
+        if (state.assets.backgroundExternalPreviewImage && state.assets.backgroundExternalPreviewKey === externalKey) {
+            drawBackgroundPreviewFrame(0);
+            syncBackgroundExportControls();
+            return;
+        }
+
+        state.assets.backgroundExternalPreviewImage = null;
+        state.assets.backgroundExternalPreviewKey = externalKey;
+        drawBackgroundPreviewFrame(0);
+
+        const renderId = state.assets.backgroundPreviewRenderId + 1;
+        state.assets.backgroundPreviewRenderId = renderId;
+
+        try {
+            const img = await loadExternalBackgroundImage();
+            if (renderId !== state.assets.backgroundPreviewRenderId) return;
+
+            state.assets.backgroundExternalPreviewImage = img;
+            drawBackgroundPreviewFrame(0);
+            syncBackgroundExportControls();
+        } catch (error) {
+            console.warn('External background preview could not be rendered.', error);
+            syncBackgroundExportControls();
+        }
+
+        return;
+    }
+
+    if (!template) return;
+
+    const renderId = state.assets.backgroundPreviewRenderId + 1;
+    state.assets.backgroundPreviewRenderId = renderId;
+
+    try {
+        const svgText = sanitizeSvgForCanvas(getColoredBackgroundSvg());
+        const img = await loadImage(svgTextToDataUrl(svgText), 6000);
+        if (renderId !== state.assets.backgroundPreviewRenderId) return;
+
+        state.assets.backgroundPreviewImage = img;
+        drawBackgroundPreviewFrame(0);
+        syncBackgroundPreviewPlayback();
+    } catch (error) {
+        console.warn('Background preview could not be rendered.', error);
+    }
+}
+
+function getBackgroundExportFormat() {
+    return state.backgroundExportFormat || 'png';
+}
+
+function getBackgroundVideoMimeType() {
+    if (typeof MediaRecorder === 'undefined') return '';
+    const candidates = ['video/webm;codecs=vp8', 'video/webm', 'video/webm;codecs=vp9'];
+    return candidates.find(type => typeof MediaRecorder.isTypeSupported !== 'function' || MediaRecorder.isTypeSupported(type)) || '';
+}
+
+function isBackgroundVideoSupported() {
+    return typeof MediaRecorder !== 'undefined'
+        && typeof HTMLCanvasElement !== 'undefined'
+        && 'captureStream' in HTMLCanvasElement.prototype
+        && Boolean(getBackgroundVideoMimeType());
+}
+
+function syncBackgroundExportControls() {
+    if (isBackgroundExternalScreen() && state.backgroundExportFormat !== 'png') {
+        state.backgroundExportFormat = 'png';
+    }
+
+    const format = getBackgroundExportFormat();
+    const webmSupported = isBackgroundVideoSupported();
+    const isExternal = isBackgroundExternalScreen();
+
+    if (els.backgroundExportBtns?.length) {
+        els.backgroundExportBtns.forEach(button => {
+            const buttonFormat = button.dataset.exportFormat;
+            const isActive = buttonFormat === format;
+            const isWebm = buttonFormat === 'webm';
+            const isVideoButton = buttonFormat === 'webm' || buttonFormat === 'mp4';
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+            button.disabled = isExternal ? isVideoButton : isWebm && !webmSupported;
+            button.title = isExternal && isVideoButton
+                ? 'External background export is PNG only.'
+                : isWebm && !webmSupported
+                    ? 'WEBM export is not supported in this browser.'
+                    : '';
+        });
+    }
+
+    if (els.backgroundExportHelp) {
+        if (isExternal) {
+            els.backgroundExportHelp.textContent = `External PNG · ${getBackgroundExternalVariantLabel()}`;
+        } else if (format === 'mp4') {
+            els.backgroundExportHelp.textContent = `MP4 Video · ${getBackgroundAnimationLabel()} · ${getBackgroundVideoDurationSeconds()}s. (Uses ffmpeg.wasm. It is slower, but it is the most compatible option for Cocoon.)`;
+        } else if (format === 'webm') {
+            els.backgroundExportHelp.textContent = `WEBM Video · ${getBackgroundAnimationLabel()} · ${getBackgroundVideoDurationSeconds()}s`;
+        } else {
+            els.backgroundExportHelp.textContent = 'PNG Image';
+        }
+    }
+
+    if (els.backgroundScreenTabs) {
+        els.backgroundScreenTabs.hidden = state.mode !== 'background';
+    }
+
+    if (els.backgroundScreenBtns?.length) {
+        els.backgroundScreenBtns.forEach(button => {
+            const isActive = button.dataset.backgroundScreen === getBackgroundScreen();
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-selected', String(isActive));
+        });
+    }
+
+    const backgroundPreviewShell = els.backgroundPreviewCanvas?.closest('.background-preview-shell');
+    if (backgroundPreviewShell) {
+        backgroundPreviewShell.classList.toggle('external-preview-compact', isExternal);
+    }
+
+    if (els.backgroundExternalVariantGroup) {
+        els.backgroundExternalVariantGroup.hidden = !isExternal;
+    }
+
+    if (els.backgroundExternalPreviewGroup) {
+        els.backgroundExternalPreviewGroup.hidden = !isExternal;
+    }
+    if (els.backgroundExternalShowFolders) {
+        els.backgroundExternalShowFolders.checked = Boolean(state.backgroundExternalShowFolders);
+    }
+
+    const isExternalPanelConfigVisible = isExternal && getBackgroundExternalVariant() !== 'gradient';
+    if (els.backgroundExternalPanelGroup) {
+        els.backgroundExternalPanelGroup.hidden = !isExternalPanelConfigVisible;
+    }
+    if (els.backgroundExternalPanelCustom) {
+        els.backgroundExternalPanelCustom.hidden = !isExternalPanelConfigVisible;
+    }
+    if (els.backgroundExternalPanelTop) {
+        els.backgroundExternalPanelTop.value = normalizeHex(state.backgroundExternalPanelCustomTop) || '#F8F8F8';
+    }
+    if (els.backgroundExternalPanelBottom) {
+        els.backgroundExternalPanelBottom.value = normalizeHex(state.backgroundExternalPanelCustomBottom) || '#E9EDF1';
+    }
+    if (els.backgroundExternalPanelTopValue) {
+        els.backgroundExternalPanelTopValue.textContent = normalizeHex(state.backgroundExternalPanelCustomTop) || '#F8F8F8';
+    }
+    if (els.backgroundExternalPanelBottomValue) {
+        els.backgroundExternalPanelBottomValue.textContent = normalizeHex(state.backgroundExternalPanelCustomBottom) || '#E9EDF1';
+    }
+    if (els.backgroundNote) {
+        els.backgroundNote.hidden = state.mode !== 'background' || isExternal;
+    }
+
+    if (els.backgroundOverlayGroup) {
+        els.backgroundOverlayGroup.hidden = state.mode !== 'background' || isExternal;
+    }
+
+
+    if (els.backgroundExternalThemeBtns?.length) {
+        els.backgroundExternalThemeBtns.forEach(button => {
+            const isActive = button.dataset.externalTheme === getBackgroundExternalTheme();
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+        });
+    }
+
+    if (els.backgroundExternalVariantBtns?.length) {
+        els.backgroundExternalVariantBtns.forEach(button => {
+            const isActive = button.dataset.externalVariant === getBackgroundExternalVariant();
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+        });
+    }
+
+    if (els.backgroundMetaDetail) {
+        if (isExternal) {
+            els.backgroundMetaDetail.textContent = `${BACKGROUND_EXTERNAL_SIZE.width}×${BACKGROUND_EXTERNAL_SIZE.height} PNG · ${getBackgroundExternalVariantLabel()}`;
+        } else if (format === 'mp4') {
+            els.backgroundMetaDetail.textContent = `1920×1080 MP4 · ${getBackgroundAnimationLabel()} · ${getBackgroundVideoDurationSeconds()}s`;
+        } else if (format === 'webm') {
+            els.backgroundMetaDetail.textContent = `1920×1080 WEBM · ${getBackgroundAnimationLabel()} · ${getBackgroundVideoDurationSeconds()}s`;
+        } else {
+            els.backgroundMetaDetail.textContent = '1920×1080 PNG';
+        }
+    }
+
+    syncBackgroundVideoControls();
+    syncBackgroundPreviewPlayback();
+}
+
 function fileNameWithoutExtension(fileName) {
     return fileName.replace(/\.[^/.]+$/, '');
 }
@@ -346,6 +1457,11 @@ function setPalette(top, bottom, { clearAuto = true, userOverride = true, rebuil
     els.colorTop.value = top;
     els.colorBottom.value = bottom;
     syncPaletteControls();
+    rememberFolderPreviewPaletteFromControls();
+
+    if (state.mode === 'background') {
+        resetExternalPanelColorsToThemeDefault({ refresh: false });
+    }
 
     if (clearAuto) clearAutoColor();
     updateGlobalDesign();
@@ -359,6 +1475,11 @@ function resetPalette() {
 
 // Reset colors while respecting special contexts such as Apps brand colors
 function resetColorContext() {
+    if (state.mode === 'background') {
+        setPalette(BACKGROUND_DEFAULT_PRESET.top, BACKGROUND_DEFAULT_PRESET.bottom, { userOverride: false });
+        return;
+    }
+
     if (state.mode === 'dock') {
         state.brandColors.dock = true;
         syncPaletteControls();
@@ -614,6 +1735,13 @@ function updateFolderBackground() {
     const img = new Image();
     img.onload = () => {
         state.assets.globalSvgImg = img;
+        if (style === 'custom') {
+            state.assets.backgroundExternalFolderPreviewImage = img;
+            state.assets.backgroundExternalFolderPreviewKey = getExternalPreviewFolderKey();
+        }
+        if (isBackgroundExternalScreen() && state.backgroundExternalShowFolders) {
+            drawBackgroundPreviewFrame(0);
+        }
     };
     img.src = folderDataUrl;
 }
@@ -623,13 +1751,37 @@ function updateGlobalDesign() {
     updateDynamicIconUrls();
     refreshVisibleIconSources();
     updateFolderBackground();
+    updateBackgroundPreview();
 }
 
 // Refresh selected count text and enable/disable export
 function updateActionBar() {
+    if (state.mode === 'background') {
+        const format = getBackgroundExportFormat();
+        const webmSupported = isBackgroundVideoSupported();
+        const needsWebm = format === 'webm' || format === 'mp4';
+        const isExternal = isBackgroundExternalScreen();
+        els.countDisplay.textContent = isExternal
+            ? 'Background External'
+            : format === 'png'
+                ? 'Background'
+                : 'Background (Looping Video)';
+        els.downloadBtn.disabled = isExternal ? false : !getBackgroundTemplate() || (needsWebm && !webmSupported);
+        els.downloadBtn.textContent = isExternal
+            ? 'Download External PNG'
+            : format === 'mp4'
+                ? 'Download MP4'
+                : format === 'webm'
+                    ? 'Download WEBM'
+                    : 'Download PNG';
+        syncBackgroundExportControls();
+        return;
+    }
+
     const count = state.selectedIcons.size;
     els.countDisplay.textContent = `${count} icon${count > 1 ? 's' : ''} selected`;
     els.downloadBtn.disabled = count === 0;
+    els.downloadBtn.textContent = 'Download ZIP';
 }
 
 // Highlight the active category tab
@@ -759,7 +1911,7 @@ function updateStyleControls() {
         icon_only: 0,
         custom: 5
     };
-    
+
     els.ySlider.value = defaultYByStyle[style] ?? DEFAULTS.icon.y;
     applyIconControls();
 }
@@ -768,6 +1920,7 @@ function updateStyleControls() {
 function updateModeControls() {
     const isAssetsMode = state.mode === 'assets';
     const isDockMode = state.mode === 'dock';
+    const isBackgroundMode = state.mode === 'background';
 
     const titles = {
         generator: {
@@ -781,6 +1934,10 @@ function updateModeControls() {
         assets: {
             appearance: 'Logo Export',
             adjustments: 'Logo Adjustments'
+        },
+        background: {
+            appearance: 'Background Colors',
+            adjustments: 'Background Adjustments'
         }
     };
 
@@ -788,18 +1945,32 @@ function updateModeControls() {
     if (els.adjustmentsTitle) els.adjustmentsTitle.textContent = titles[state.mode]?.adjustments || 'Adjustments';
 
     els.dashboard.style.display = isAssetsMode ? 'none' : 'grid';
+    els.dashboard.classList.toggle('background-dashboard', isBackgroundMode);
     if (els.dockNote) els.dockNote.hidden = !isDockMode;
-    els.autoColorBtn.style.display = isDockMode ? 'none' : 'inline-flex';
+    if (els.backgroundNote) els.backgroundNote.hidden = !isBackgroundMode || isBackgroundExternalScreen();
+    els.autoColorBtn.style.display = (isDockMode || isBackgroundMode) ? 'none' : 'inline-flex';
 
-    els.folderStyleRow.style.display = isDockMode ? 'none' : '';
-    els.folderTiltRow.style.display = isDockMode ? 'none' : '';
-    els.iconControlsGroup.style.display = isDockMode ? 'none' : '';
+    els.folderStyleRow.style.display = (isDockMode || isBackgroundMode) ? 'none' : '';
+    els.folderTiltRow.style.display = (isDockMode || isBackgroundMode) ? 'none' : '';
+    els.iconControlsGroup.style.display = (isDockMode || isBackgroundMode) ? 'none' : '';
+    if (els.backgroundOverlayGroup) els.backgroundOverlayGroup.hidden = !isBackgroundMode || isBackgroundExternalScreen();
     els.subTabsContainer.style.display = state.mode === 'generator' ? 'flex' : 'none';
+    if (els.backgroundScreenTabs) els.backgroundScreenTabs.hidden = !isBackgroundMode;
 
+    if (els.backgroundPanel) els.backgroundPanel.hidden = !isBackgroundMode;
+    if (isBackgroundMode) {
+        if (!state.assets.backgroundPreviewImage) updateBackgroundPreview();
+        syncBackgroundPreviewPlayback();
+    } else {
+        stopBackgroundPreviewAnimation();
+    }
+    els.grid.hidden = isBackgroundMode;
     els.grid.classList.toggle('assets-mode', isAssetsMode || isDockMode);
     document.body.dataset.mode = state.mode;
 
+    syncBackgroundExportControls();
     syncAutoColorButtonState();
+    updateActionBar();
 }
 
 // --- MODE SWITCHER LOGIC ---
@@ -825,6 +1996,7 @@ window.switchMode = function switchMode(mode) {
 // --- GRID ---
 // Return only the icons that should be rendered for the current mode/tab
 function getVisibleIconsForCurrentMode() {
+    if (state.mode === 'background') return [];
     if (state.mode === 'assets') return iconsDatabase.filter(icon => icon.tab === 'logos');
     if (state.mode === 'dock') return iconsDatabase.filter(icon => icon.tab === 'dock');
     return iconsDatabase.filter(icon => icon.tab !== 'logos' && icon.tab !== 'dock' && icon.tab === state.activeTab);
@@ -988,6 +2160,8 @@ function filterGrid() {
             card.classList.toggle('hidden', tab !== 'logos');
         } else if (state.mode === 'dock') {
             card.classList.toggle('hidden', tab !== 'dock');
+        } else if (state.mode === 'background') {
+            card.classList.add('hidden');
         }
     });
 }
@@ -1024,6 +2198,37 @@ function handleCustomBackgroundUpload(file) {
         state.assets.customBgDataUrl = event.target.result;
         clearAutoColor();
         updateGlobalDesign();
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearBackgroundOverlay() {
+    state.assets.backgroundOverlayDataUrl = null;
+    state.assets.backgroundOverlayImage = null;
+    state.assets.backgroundOverlayFileName = '';
+    if (els.backgroundOverlayUpload) els.backgroundOverlayUpload.value = '';
+    resetBackgroundOverlayControls();
+    updateBackgroundPreview();
+}
+
+function handleBackgroundOverlayUpload(file) {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async event => {
+        try {
+            const dataUrl = event.target.result;
+            const img = await loadImage(dataUrl, 6000);
+            state.assets.backgroundOverlayDataUrl = dataUrl;
+            state.assets.backgroundOverlayImage = img;
+            state.assets.backgroundOverlayFileName = file.name || 'Overlay image';
+            if (els.backgroundOverlayUpload) els.backgroundOverlayUpload.value = '';
+            resetBackgroundOverlayControls();
+            updateBackgroundPreview();
+        } catch (error) {
+            console.error(error);
+            alert(`Overlay image could not be loaded: ${error.message || error}`);
+        }
     };
     reader.readAsDataURL(file);
 }
@@ -1299,8 +2504,991 @@ async function getFolderBackgroundImage(icon, style) {
     return null;
 }
 
+
+
+// Rasterize the current Background template as a PNG
+async function backgroundToBlob(width = 1920, height = 1080) {
+    if (isBackgroundExternalScreen()) {
+        const img = await loadExternalBackgroundImage();
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = BACKGROUND_EXTERNAL_SIZE.width;
+        canvas.height = BACKGROUND_EXTERNAL_SIZE.height;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        drawExternalBackgroundImage(ctx, img, canvas.width, canvas.height);
+
+        return canvasToBlob(canvas);
+    }
+
+    const svgText = sanitizeSvgForCanvas(getColoredBackgroundSvg());
+    const img = await loadImage(svgTextToDataUrl(svgText), 6000);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = width;
+    canvas.height = height;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    renderStaticBackgroundFrame(ctx, img, width, height);
+
+    return canvasToBlob(canvas);
+}
+
+
+function wait(ms) {
+    return new Promise(resolve => window.setTimeout(resolve, ms));
+}
+
+function drawRoundedRectPath(ctx, x, y, width, height, radius) {
+    const safeRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
+    ctx.beginPath();
+    ctx.moveTo(x + safeRadius, y);
+    ctx.lineTo(x + width - safeRadius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+    ctx.lineTo(x + width, y + height - safeRadius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+    ctx.lineTo(x + safeRadius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+    ctx.lineTo(x, y + safeRadius);
+    ctx.quadraticCurveTo(x, y, x + safeRadius, y);
+    ctx.closePath();
+}
+
+function drawAnimatedBackgroundTile(ctx, x, y, { scale = 1, opacity = 1 } = {}) {
+    const alpha = Math.max(0, getBackgroundPatternOpacity() * opacity);
+    if (alpha <= 0) return;
+
+    ctx.save();
+    ctx.transform(1, 0, -0.5, 0.866025, x, y);
+    ctx.translate(98, 95);
+    ctx.scale(scale, scale);
+    drawRoundedRectPath(ctx, -98, -95, 196, 190, 20);
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.fill();
+    ctx.restore();
+}
+
+function forEachBackgroundTile(width, height, callback, { offsetX = 0, offsetY = 0 } = {}) {
+    const columnStep = 241;
+    const rowStep = 194;
+    const cycleX = columnStep * 2;
+    const cycleY = rowStep * 2;
+    const baseEvenX = 45;
+    const baseOddX = -75;
+    const baseStartY = -28.2725;
+
+    const minRow = -3;
+    const maxRow = Math.ceil((height + cycleY + 260) / rowStep) + 3;
+    const minCol = -4;
+    const maxCol = Math.ceil((width + cycleX + 260) / columnStep) + 4;
+
+    for (let row = minRow; row <= maxRow; row++) {
+        const isEvenRow = Math.abs(row % 2) === 0;
+        const baseX = isEvenRow ? baseEvenX : baseOddX;
+        const y = baseStartY + row * rowStep + offsetY;
+
+        for (let col = minCol; col <= maxCol; col++) {
+            const x = baseX + col * columnStep + offsetX;
+            callback({ x, y, row, col, columnStep, rowStep });
+        }
+    }
+}
+
+function fract(value) {
+    return value - Math.floor(value);
+}
+
+function pseudoRandom2D(x, y) {
+    return fract(Math.sin(x * 127.1 + y * 311.7) * 43758.5453123);
+}
+
+function smoothPulse(value, center, width) {
+    const distance = Math.abs(value - center);
+    if (distance >= width) return 0;
+    const normalized = 1 - distance / width;
+    return normalized * normalized * (3 - 2 * normalized);
+}
+
+function drawDriftBackgroundGrid(ctx, width, height, progress) {
+    const columnStep = 241;
+    const rowStep = 194;
+    const offsetX = -progress * columnStep * 2;
+    const offsetY = -progress * rowStep * 2;
+
+    forEachBackgroundTile(width, height, ({ x, y }) => {
+        drawAnimatedBackgroundTile(ctx, x, y);
+    }, { offsetX, offsetY });
+}
+
+function drawRippleBackgroundGrid(ctx, width, height, progress) {
+    const centerX = width * 0.52;
+    const centerY = height * 0.48;
+    const maxDistance = Math.hypot(width * 0.62, height * 0.62);
+    const waveHead = progress * 1.18;
+
+    forEachBackgroundTile(width, height, ({ x, y }) => {
+        const tileCenterX = x + 98;
+        const tileCenterY = y + 95;
+        const normalizedDistance = Math.hypot(tileCenterX - centerX, tileCenterY - centerY) / maxDistance;
+        const pulse = smoothPulse(normalizedDistance, waveHead, 0.16);
+        const trailing = smoothPulse(normalizedDistance, fract(waveHead + 0.45), 0.12) * 0.45;
+        const scale = 1 + pulse * 0.1 + trailing * 0.04;
+        const opacity = 1 + pulse * 0.45 + trailing * 0.18;
+        drawAnimatedBackgroundTile(ctx, x, y, { scale, opacity });
+    });
+}
+
+function drawEchoBackgroundGrid(ctx, width, height, progress) {
+    const echoDuration = 0.22;
+
+    forEachBackgroundTile(width, height, ({ x, y, row, col }) => {
+        drawAnimatedBackgroundTile(ctx, x, y);
+
+        const seedA = pseudoRandom2D(row, col);
+        const seedB = pseudoRandom2D(row + 17.13, col - 8.41);
+        const eventStarts = [];
+
+        if (seedA > 0.58) eventStarts.push(fract(seedA * 1.37));
+        if (seedB > 0.72) eventStarts.push(fract(seedB * 1.91 + 0.33));
+
+        eventStarts.forEach(start => {
+            const local = fract(progress - start + 1);
+            if (local > echoDuration) return;
+
+            const t = local / echoDuration;
+            const pulse = 1 - t;
+            const scale = 0.15 + pulse * 0.85;
+            const opacity = pulse * 0.75;
+            drawAnimatedBackgroundTile(ctx, x, y, { scale, opacity });
+        });
+    });
+}
+
+function easeInOutCubic(t) {
+    return t < 0.5
+        ? 4 * t * t * t
+        : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function getTapEchoTileSequence(tiles) {
+    return tiles
+        .map((tile, index) => ({
+            index,
+            weight: pseudoRandom2D(tile.row * 2.173 + 11.7, tile.col * 3.911 - 8.2)
+        }))
+        .sort((a, b) => a.weight - b.weight)
+        .map(entry => entry.index);
+}
+
+function getTapEchoEventTileIndices(sequence, eventStep) {
+    if (!sequence.length) return [];
+    if (sequence.length === 1) return [sequence[0]];
+
+    const count = sequence.length;
+    const tapCountRoll = pseudoRandom2D(eventStep * 1.31 + 4.7, 9.2);
+    const tapCount = tapCountRoll > 0.82 ? 3 : tapCountRoll > 0.46 ? 2 : 1;
+    const positions = [];
+
+    for (let tapIndex = 0; tapIndex < tapCount; tapIndex += 1) {
+        let position = Math.floor(
+            pseudoRandom2D(eventStep * 2.73 + 3.1, tapIndex * 7.17 + 1.9) * count
+        );
+        let guard = 0;
+
+        while (guard < count && positions.includes(position)) {
+            const jump = 1 + Math.floor(
+                pseudoRandom2D(eventStep * 0.97 + tapIndex * 1.83 + 6.4, guard * 2.11 + 8.7)
+                * Math.max(1, count - 1)
+            );
+            position = (position + jump) % count;
+            guard += 1;
+        }
+
+        positions.push(position);
+    }
+
+    return positions.map(position => sequence[position]);
+}
+
+function getTapEchoMotion(t) {
+    const pressDuration = 0.14;
+    const holdDuration = 0.34;
+    const releaseDuration = 0.38;
+    const totalActive = pressDuration + holdDuration + releaseDuration;
+    const minScale = 0.5;
+
+    if (t < pressDuration) {
+        const local = t / pressDuration;
+        return 1 - easeInOutCubic(local) * (1 - minScale);
+    }
+
+    if (t < pressDuration + holdDuration) {
+        return minScale;
+    }
+
+    if (t < totalActive) {
+        const local = (t - pressDuration - holdDuration) / releaseDuration;
+        return minScale + easeInOutCubic(local) * (1 - minScale);
+    }
+
+    return 1;
+}
+
+function getTapEchoEnvelope(t) {
+    const pressDuration = 0.14;
+    const holdDuration = 0.34;
+    const releaseDuration = 0.38;
+    const totalActive = pressDuration + holdDuration + releaseDuration;
+
+    if (t < 0 || t >= totalActive) {
+        return 0;
+    }
+
+    if (t < pressDuration) {
+        return easeInOutCubic(t / pressDuration);
+    }
+
+    if (t < pressDuration + holdDuration) {
+        return 1;
+    }
+
+    const local = (t - pressDuration - holdDuration) / releaseDuration;
+    return 1 - easeInOutCubic(local);
+}
+
+function drawTapEchoBackgroundGrid(ctx, width, height, progress) {
+    const tiles = collectBackgroundTiles(width, height);
+    if (!tiles.length) return;
+
+    const sequence = getTapEchoTileSequence(tiles);
+    const totalDurationSeconds = getBackgroundVideoDurationMs() / 1000;
+    const elapsedSeconds = progress * totalDurationSeconds;
+    const eventSpacingSeconds = 0.22;
+    const activeDurationSeconds = 0.92;
+    const latestEventStep = Math.floor(elapsedSeconds / eventSpacingSeconds);
+    const maxConcurrentEvents = Math.ceil(activeDurationSeconds / eventSpacingSeconds) + 1;
+    const tileStates = new Map();
+
+    for (let offset = 0; offset < maxConcurrentEvents; offset += 1) {
+        const eventStep = latestEventStep - offset;
+        if (eventStep < 0) continue;
+
+        const eventStartSeconds = eventStep * eventSpacingSeconds;
+        const eventElapsedSeconds = elapsedSeconds - eventStartSeconds;
+        if (eventElapsedSeconds < 0 || eventElapsedSeconds > activeDurationSeconds) continue;
+
+        const local = eventElapsedSeconds / activeDurationSeconds;
+        const activeIndices = getTapEchoEventTileIndices(sequence, eventStep);
+        if (!activeIndices.length) continue;
+
+        const scale = getTapEchoMotion(local);
+        const pressedAmount = 1 - Math.min(1, Math.abs(scale - 0.5) / 0.5);
+        if (pressedAmount <= 0.01) continue;
+
+        activeIndices.forEach(activeIndex => {
+            if (activeIndex < 0) return;
+
+            const current = tileStates.get(activeIndex) || {
+                baseOpacity: 1,
+                innerOpacity: 0,
+                scale: 1,
+                strength: 0
+            };
+            const baseOpacity = 1 - pressedAmount * 0.45;
+            const innerOpacity = pressedAmount * 0.34;
+
+            if (pressedAmount >= current.strength) {
+                current.scale = scale;
+                current.strength = pressedAmount;
+            }
+
+            current.baseOpacity = Math.min(current.baseOpacity, baseOpacity);
+            current.innerOpacity = Math.max(current.innerOpacity, innerOpacity);
+            tileStates.set(activeIndex, current);
+        });
+    }
+
+    tiles.forEach((tile, index) => {
+        const state = tileStates.get(index);
+        drawAnimatedBackgroundTile(ctx, tile.x, tile.y, { opacity: state ? state.baseOpacity : 1 });
+
+        if (!state || state.innerOpacity <= 0.01) return;
+        drawAnimatedBackgroundTile(ctx, tile.x, tile.y, {
+            scale: state.scale,
+            opacity: state.innerOpacity
+        });
+    });
+}
+
+
+function collectBackgroundTiles(width, height) {
+    const tiles = [];
+    forEachBackgroundTile(width, height, tile => tiles.push(tile));
+    return tiles;
+}
+
+function tileKey(row, col) {
+    return `${row}:${col}`;
+}
+
+function drawVerticalSwapBackgroundGrid(ctx, width, height, progress) {
+    const tiles = collectBackgroundTiles(width, height);
+    const tileMap = new Map(tiles.map(tile => [tileKey(tile.row, tile.col), tile]));
+    const swapped = new Set();
+    const activePairs = [];
+    const duration = 0.34;
+
+    tiles.forEach(tile => {
+        if (tile.row % 2 !== 0) return;
+        const target = tileMap.get(tileKey(tile.row + 1, tile.col));
+        if (!target) return;
+
+        const seed = pseudoRandom2D(tile.row * 0.73 + 5.2, tile.col * 1.31 - 8.8);
+        if (seed < 0.72) return;
+
+        const start = fract(seed * 1.47 + pseudoRandom2D(tile.row + 19.4, tile.col - 3.7) * 0.2);
+        const local = fract(progress - start + 1);
+        if (local > duration) return;
+
+        swapped.add(tileKey(tile.row, tile.col));
+        swapped.add(tileKey(target.row, target.col));
+        activePairs.push({ a: tile, b: target, t: local / duration });
+    });
+
+    tiles.forEach(tile => {
+        if (swapped.has(tileKey(tile.row, tile.col))) return;
+        drawAnimatedBackgroundTile(ctx, tile.x, tile.y);
+    });
+
+    activePairs.forEach(({ a, b, t }) => {
+        const motion = 0.5 - Math.cos(t * Math.PI * 2) * 0.5;
+        const easeGlow = Math.sin(t * Math.PI);
+        const ax = a.x + (b.x - a.x) * motion;
+        const ay = a.y + (b.y - a.y) * motion;
+        const bx = b.x + (a.x - b.x) * motion;
+        const by = b.y + (a.y - b.y) * motion;
+        const scale = 1 + easeGlow * 0.04;
+        const opacity = 1 + easeGlow * 0.28;
+
+        drawAnimatedBackgroundTile(ctx, ax, ay, { scale, opacity });
+        drawAnimatedBackgroundTile(ctx, bx, by, { scale, opacity });
+    });
+}
+
+function collectVerticalSwapPairs(tiles) {
+    const tileMap = new Map(tiles.map(tile => [tileKey(tile.row, tile.col), tile]));
+    return tiles
+        .filter(tile => tile.row % 2 === 0)
+        .map(tile => ({ a: tile, b: tileMap.get(tileKey(tile.row + 1, tile.col)) }))
+        .filter(pair => pair.b);
+}
+
+function getEchoSwapEventType(step) {
+    return pseudoRandom2D(step * 1.137 + 2.1, step * 0.713 + 8.4) > 0.4 ? 'tap' : 'swap';
+}
+
+function getEchoSwapTapIndex(sequence, step) {
+    if (!sequence.length) return -1;
+    if (sequence.length === 1) return sequence[0];
+
+    let rawIndex = Math.floor(pseudoRandom2D(step * 1.913 + 4.2, step * -0.717 + 8.6) * sequence.length);
+    const previousRawIndex = Math.floor(pseudoRandom2D((step - 1) * 1.913 + 4.2, (step - 1) * -0.717 + 8.6) * sequence.length);
+
+    if (step > 0 && rawIndex === previousRawIndex) {
+        const offset = 1 + Math.floor(pseudoRandom2D(step * 2.771 + 1.3, step * 0.553 - 9.1) * (sequence.length - 1));
+        rawIndex = (rawIndex + offset) % sequence.length;
+    }
+
+    return sequence[rawIndex];
+}
+
+function getEchoSwapPairIndex(sequenceLength, step) {
+    if (sequenceLength <= 1) return 0;
+
+    let rawIndex = Math.floor(pseudoRandom2D(step * 1.531 + 6.8, step * -0.881 + 2.4) * sequenceLength);
+    const previousRawIndex = Math.floor(pseudoRandom2D((step - 1) * 1.531 + 6.8, (step - 1) * -0.881 + 2.4) * sequenceLength);
+
+    if (step > 0 && rawIndex === previousRawIndex) {
+        const offset = 1 + Math.floor(pseudoRandom2D(step * 0.913 + 3.6, step * 1.241 - 5.9) * (sequenceLength - 1));
+        rawIndex = (rawIndex + offset) % sequenceLength;
+    }
+
+    return rawIndex;
+}
+
+function drawEchoSwapBackgroundGrid(ctx, width, height, progress) {
+    const tiles = collectBackgroundTiles(width, height);
+    if (!tiles.length) return;
+
+    const totalDurationSeconds = getBackgroundVideoDurationMs() / 1000;
+    const elapsedSeconds = progress * totalDurationSeconds;
+
+    const tapSequence = getTapEchoTileSequence(tiles);
+    const tapCycleDurationSeconds = 0.98;
+    const tapStep = Math.floor(elapsedSeconds / tapCycleDurationSeconds);
+    const tapLocalSeconds = elapsedSeconds - tapStep * tapCycleDurationSeconds;
+    const tapLocal = tapLocalSeconds / tapCycleDurationSeconds;
+    const tapEnvelope = getTapEchoEnvelope(tapLocal);
+
+    const pairs = collectVerticalSwapPairs(tiles);
+    const pairSequence = pairs
+        .map((pair, index) => ({
+            index,
+            weight: pseudoRandom2D(pair.a.row * 2.37 + 1.8, pair.a.col * 3.17 - 6.2)
+        }))
+        .sort((a, b) => a.weight - b.weight)
+        .map(entry => entry.index);
+
+    let activeSwapPair = null;
+    let swapMotion = 0;
+    let swapEnvelope = 0;
+    let swappedKeys = new Set();
+
+    if (pairSequence.length) {
+        const swapCycleDurationSeconds = 2.65;
+        const swapActiveDurationSeconds = 0.92;
+        const swapStep = Math.floor(elapsedSeconds / swapCycleDurationSeconds);
+        const swapLocalSeconds = elapsedSeconds - swapStep * swapCycleDurationSeconds;
+        const hasActiveSwap = swapLocalSeconds < swapActiveDurationSeconds;
+
+        if (hasActiveSwap) {
+            activeSwapPair = pairs[pairSequence[getEchoSwapPairIndex(pairSequence.length, swapStep)]];
+            const swapT = swapLocalSeconds / swapActiveDurationSeconds;
+            swapMotion = easeInOutCubic(Math.min(1, swapT));
+            const fadeIn = easeInOutCubic(Math.min(1, swapT / 0.18));
+            const fadeOut = 1 - easeInOutCubic(Math.max(0, (swapT - 0.7) / 0.3));
+            swapEnvelope = Math.max(0, Math.min(1, fadeIn, fadeOut));
+            swappedKeys = new Set([
+                tileKey(activeSwapPair.a.row, activeSwapPair.a.col),
+                tileKey(activeSwapPair.b.row, activeSwapPair.b.col)
+            ]);
+        }
+    }
+
+    let activeTapIndex = getEchoSwapTapIndex(tapSequence, tapStep);
+    if (
+        activeTapIndex >= 0
+        && swappedKeys.size
+        && swappedKeys.has(tileKey(tiles[activeTapIndex].row, tiles[activeTapIndex].col))
+    ) {
+        activeTapIndex = getEchoSwapTapIndex(tapSequence, tapStep + 1);
+    }
+
+    tiles.forEach((tile, index) => {
+        const key = tileKey(tile.row, tile.col);
+        if (swappedKeys.has(key)) return;
+
+        const isActiveTap = index === activeTapIndex;
+        const baseOpacity = isActiveTap ? 1 - tapEnvelope * 0.5 : 1;
+        drawAnimatedBackgroundTile(ctx, tile.x, tile.y, { opacity: baseOpacity });
+
+        if (!isActiveTap || tapEnvelope <= 0) return;
+
+        const scale = getTapEchoMotion(tapLocal);
+        const pressedAmount = 1 - Math.min(1, Math.abs(scale - 0.5) / 0.5);
+        const innerOpacity = 0.24 + tapEnvelope * 0.16 + pressedAmount * 0.08;
+        drawAnimatedBackgroundTile(ctx, tile.x, tile.y, { scale, opacity: innerOpacity });
+    });
+
+    if (!activeSwapPair || swapEnvelope <= 0) return;
+
+    const ax = activeSwapPair.a.x + (activeSwapPair.b.x - activeSwapPair.a.x) * swapMotion;
+    const ay = activeSwapPair.a.y + (activeSwapPair.b.y - activeSwapPair.a.y) * swapMotion;
+    const bx = activeSwapPair.b.x + (activeSwapPair.a.x - activeSwapPair.b.x) * swapMotion;
+    const by = activeSwapPair.b.y + (activeSwapPair.a.y - activeSwapPair.b.y) * swapMotion;
+    const scale = 1 + swapEnvelope * 0.04;
+    const opacity = 0.72 + swapEnvelope * 0.18;
+
+    drawAnimatedBackgroundTile(ctx, ax, ay, { scale, opacity });
+    drawAnimatedBackgroundTile(ctx, bx, by, { scale, opacity });
+}
+
+
+function drawParallaxSwapDriftBackgroundGrid(ctx, width, height, progress) {
+    const tiles = collectBackgroundTiles(width, height);
+    if (!tiles.length) return;
+
+    const stripes = new Map();
+    tiles.forEach(tile => {
+        const stripeIndex = tile.col + Math.floor(tile.row / 2);
+        if (!stripes.has(stripeIndex)) stripes.set(stripeIndex, []);
+        stripes.get(stripeIndex).push(tile);
+    });
+
+    const columnDelay = 0.06;
+    const restWindow = 0.38;
+    const moveWindow = 1 - restWindow;
+    const periodOffsetX = -241;
+    const periodOffsetY = 388;
+
+    stripes.forEach((stripeTiles, stripeIndex) => {
+        const phase = fract(progress - stripeIndex * columnDelay + 1);
+        const moveProgress = phase < restWindow
+            ? 0
+            : easeInOutCubic((phase - restWindow) / moveWindow);
+        const xOffset = periodOffsetX * moveProgress;
+        const yOffset = periodOffsetY * moveProgress;
+        const opacity = 1 + 0.035 * Math.sin(moveProgress * Math.PI);
+
+        stripeTiles.forEach(tile => {
+            drawAnimatedBackgroundTile(ctx, tile.x + xOffset, tile.y + yOffset, { opacity });
+        });
+    });
+}
+
+
+function drawDiagonalColumnFlowContinuousBackgroundGrid(ctx, width, height, progress) {
+    const tiles = collectBackgroundTiles(width, height);
+    if (!tiles.length) return;
+
+    const stripes = new Map();
+    tiles.forEach(tile => {
+        const stripeIndex = tile.col + Math.floor(tile.row / 2);
+        if (!stripes.has(stripeIndex)) stripes.set(stripeIndex, []);
+        stripes.get(stripeIndex).push(tile);
+    });
+
+    const stripeIndices = Array.from(stripes.keys());
+    const minStripeIndex = Math.min(...stripeIndices);
+    const columnDelay = 0.06;
+    const initialLead = 0.28;
+    const periodOffsetX = -241;
+    const periodOffsetY = 388;
+
+    stripes.forEach((stripeTiles, stripeIndex) => {
+        const stripeOrder = stripeIndex - minStripeIndex;
+        const moveProgress = fract(progress + initialLead - stripeOrder * columnDelay + 1);
+        const xOffset = periodOffsetX * moveProgress;
+        const yOffset = periodOffsetY * moveProgress;
+        const opacity = 1 + 0.035 * Math.sin(moveProgress * Math.PI);
+
+        stripeTiles.forEach(tile => {
+            drawAnimatedBackgroundTile(ctx, tile.x + xOffset, tile.y + yOffset, { opacity });
+        });
+    });
+}
+
+function drawDiagonalColumnFlowVariableBackgroundGrid(ctx, width, height, progress) {
+    const tiles = collectBackgroundTiles(width, height);
+    if (!tiles.length) return;
+
+    const stripes = new Map();
+    tiles.forEach(tile => {
+        const stripeIndex = tile.col + Math.floor(tile.row / 2);
+        if (!stripes.has(stripeIndex)) stripes.set(stripeIndex, []);
+        stripes.get(stripeIndex).push(tile);
+    });
+
+    const stripeIndices = Array.from(stripes.keys());
+    const minStripeIndex = Math.min(...stripeIndices);
+    const columnDelay = 0.06;
+    const initialLead = 0.28;
+    const periodOffsetX = -241;
+    const periodOffsetY = 388;
+    const speedCycleRange = 7;
+
+    stripes.forEach((stripeTiles, stripeIndex) => {
+        const stripeOrder = stripeIndex - minStripeIndex;
+        const uniqueSeed = fract((stripeOrder + 1) * 0.61803398875 + 0.17320508076);
+        const secondarySeed = fract((stripeOrder + 1) * 0.41421356237 + 0.31783724519);
+        const tertiarySeed = fract((stripeOrder + 1) * 0.73205080757 + 0.219543);
+        const speedCycles = 1 + ((stripeOrder * 5 + 2) % speedCycleRange);
+        const phaseOffset = secondarySeed * 0.94;
+        const speedWobble = Math.sin((progress + tertiarySeed) * Math.PI * 2) * 0.055
+            + Math.sin((progress * 2 + uniqueSeed) * Math.PI * 2) * 0.025;
+        const moveProgress = fract(
+            progress * speedCycles
+            + speedWobble
+            + initialLead
+            - stripeOrder * columnDelay
+            + phaseOffset
+            + 1
+        );
+        const xOffset = periodOffsetX * moveProgress;
+        const yOffset = periodOffsetY * moveProgress;
+        const opacity = 1 + 0.035 * Math.sin(moveProgress * Math.PI);
+
+        stripeTiles.forEach(tile => {
+            drawAnimatedBackgroundTile(ctx, tile.x + xOffset, tile.y + yOffset, { opacity });
+        });
+    });
+}
+
+
+function renderBackgroundGrid(ctx, width, height, progress) {
+    switch (getBackgroundAnimation()) {
+        case 'ripple':
+            drawRippleBackgroundGrid(ctx, width, height, progress);
+            break;
+        case 'echo':
+            drawEchoBackgroundGrid(ctx, width, height, progress);
+            break;
+        case 'tapEcho':
+            drawTapEchoBackgroundGrid(ctx, width, height, progress);
+            break;
+        case 'swap':
+            drawVerticalSwapBackgroundGrid(ctx, width, height, progress);
+            break;
+        case 'swapDrift':
+            drawParallaxSwapDriftBackgroundGrid(ctx, width, height, progress);
+            break;
+        case 'diagonalColumnFlowContinuous':
+            drawDiagonalColumnFlowContinuousBackgroundGrid(ctx, width, height, progress);
+            break;
+        case 'diagonalColumnFlowVariable':
+            drawDiagonalColumnFlowVariableBackgroundGrid(ctx, width, height, progress);
+            break;
+        case 'drift':
+        default:
+            drawDriftBackgroundGrid(ctx, width, height, progress);
+            break;
+    }
+}
+
+function renderAnimatedBackgroundFrame(ctx, width, height, progress) {
+    const palette = getPalette();
+    const scaleX = width / BACKGROUND_DESIGN_SIZE.width;
+    const scaleY = height / BACKGROUND_DESIGN_SIZE.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    const backgroundGradient = ctx.createLinearGradient(0, 0, 0, height);
+    backgroundGradient.addColorStop(0, palette.top);
+    backgroundGradient.addColorStop(1, palette.bottom);
+    ctx.fillStyle = backgroundGradient;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.save();
+    ctx.scale(scaleX, scaleY);
+    renderBackgroundGrid(ctx, BACKGROUND_DESIGN_SIZE.width, BACKGROUND_DESIGN_SIZE.height, progress);
+    ctx.restore();
+
+    const highlight = ctx.createLinearGradient(0, 0, width, height);
+    highlight.addColorStop(0, 'rgba(255,255,255,0.028)');
+    highlight.addColorStop(0.45, 'rgba(255,255,255,0.012)');
+    highlight.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = highlight;
+    ctx.fillRect(0, 0, width, height);
+    drawBackgroundOverlay(ctx, width, height);
+}
+
+async function backgroundVideoToBlob({ width, height, fps, durationMs, videoBitsPerSecond } = BACKGROUND_WEBM_SETTINGS) {
+    if (!isBackgroundVideoSupported()) {
+        throw new Error('WEBM export is not supported in this browser.');
+    }
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = width;
+    canvas.height = height;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    renderAnimatedBackgroundFrame(ctx, width, height, 0);
+
+    const stream = canvas.captureStream(fps);
+    const track = stream.getVideoTracks()[0];
+    const mimeType = getBackgroundVideoMimeType();
+    const recorder = new MediaRecorder(stream, {
+        mimeType,
+        videoBitsPerSecond: videoBitsPerSecond || BACKGROUND_WEBM_SETTINGS.videoBitsPerSecond
+    });
+    const chunks = [];
+
+    const completed = new Promise((resolve, reject) => {
+        recorder.ondataavailable = event => {
+            if (event.data?.size) chunks.push(event.data);
+        };
+        recorder.onerror = () => reject(recorder.error || new Error('MediaRecorder error'));
+        recorder.onstop = () => resolve();
+    });
+
+    recorder.start();
+
+    const frameCount = Math.max(1, Math.round((durationMs / 1000) * fps));
+    const frameDuration = 1000 / fps;
+
+    for (let frame = 0; frame < frameCount; frame++) {
+        const progress = frame / frameCount;
+        renderAnimatedBackgroundFrame(ctx, width, height, progress);
+
+        if (typeof track?.requestFrame === 'function') {
+            track.requestFrame();
+        }
+
+        if (frame === 0 || (frame + 1) % 30 === 0 || frame === frameCount - 1) {
+            setDownloadButtonLoading(`Rendering ${frame + 1}/${frameCount}`);
+        }
+
+        await wait(frameDuration);
+    }
+
+    recorder.stop();
+    await completed;
+    stream.getTracks().forEach(mediaTrack => mediaTrack.stop());
+
+    return new Blob(chunks, { type: mimeType });
+}
+
+function waitWithTimeout(promise, timeoutMs, errorMessage) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error(errorMessage)), timeoutMs))
+    ]);
+}
+
+function loadExternalScript(src, timeoutMs = 15000) {
+    return waitWithTimeout(new Promise((resolve, reject) => {
+        const existing = Array.from(document.scripts).find(script => script.src === src);
+        if (existing) {
+            if (existing.dataset.loaded === 'true') {
+                resolve();
+                return;
+            }
+
+            existing.addEventListener('load', () => resolve(), { once: true });
+            existing.addEventListener('error', () => reject(new Error(`Could not load ${src}`)), { once: true });
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = () => {
+            script.dataset.loaded = 'true';
+            resolve();
+        };
+        script.onerror = () => reject(new Error(`Could not load ${src}`));
+        document.head.appendChild(script);
+    }), timeoutMs, `Timed out while loading ${src}`);
+}
+
+function resolveFfmpegUrl(url) {
+    return new URL(url, document.baseURI).href;
+}
+
+async function urlToBlobUrl(url, mimeType) {
+    const resolvedUrl = resolveFfmpegUrl(url);
+    const response = await waitWithTimeout(fetch(resolvedUrl), 15000, `Timed out while fetching ${resolvedUrl}`);
+    if (!response.ok) {
+        throw new Error(`Could not fetch ${resolvedUrl}`);
+    }
+
+    const blob = await response.blob();
+    return URL.createObjectURL(new Blob([blob], { type: mimeType }));
+}
+
+async function loadFfmpegFromSource(source) {
+    const scriptUrl = resolveFfmpegUrl(source.ffmpeg);
+    await loadExternalScript(scriptUrl);
+
+    const ffmpegNamespace = window.FFmpegWASM || window.FFmpeg || {};
+    const FFmpegClass = ffmpegNamespace.FFmpeg;
+    if (!FFmpegClass) {
+        throw new Error(`ffmpeg.js did not expose the FFmpeg class for the ${source.label} source`);
+    }
+
+    const ffmpeg = new FFmpegClass();
+    ffmpeg.on?.('log', ({ message }) => {
+        if (!message) return;
+        if (/frame=|time=|video:/i.test(message)) {
+            setDownloadButtonLoading('Encoding MP4...');
+        }
+    });
+
+    // Let ffmpeg.js load its own worker chunk from the same folder as ffmpeg.js
+    // Passing classWorkerURL forces a module worker and can break importScripts in some setups
+    const coreURL = await urlToBlobUrl(source.coreJs, 'text/javascript');
+    const wasmURL = await urlToBlobUrl(source.coreWasm, 'application/wasm');
+    const temporaryBlobUrls = [coreURL, wasmURL];
+
+    try {
+        await waitWithTimeout(ffmpeg.load({
+            coreURL,
+            wasmURL
+        }), 30000, `Timed out while loading ffmpeg core from the ${source.label} source`);
+    } catch (error) {
+        temporaryBlobUrls.forEach(url => URL.revokeObjectURL(url));
+        const workerHint = source.label === 'local'
+            ? ' Make sure vendor/ffmpeg/814.ffmpeg.js exists next to ffmpeg.js, then hard refresh the page.'
+            : '';
+        throw new Error(`${error.message || error}${workerHint}`);
+    }
+
+    return { ffmpeg, temporaryBlobUrls, source };
+}
+
+async function ensureFfmpegLoaded() {
+    if (state.assets.ffmpegInstance) return state.assets.ffmpegInstance;
+    if (state.assets.ffmpegLoadPromise) return state.assets.ffmpegLoadPromise;
+
+    state.assets.ffmpegLoadPromise = (async () => {
+        let lastError = null;
+        const sources = [FFMPEG_WASM_SOURCES.local, FFMPEG_WASM_SOURCES.cdn];
+
+        for (const source of sources) {
+            try {
+                setDownloadButtonLoading(source.label === 'local'
+                    ? 'Loading MP4 encoder...'
+                    : 'Loading MP4 encoder fallback...');
+
+                const loaded = await loadFfmpegFromSource(source);
+                state.assets.ffmpegInstance = loaded.ffmpeg;
+                state.assets.ffmpegBlobUrls = loaded.temporaryBlobUrls || [];
+                state.assets.ffmpegSource = source.label;
+                return loaded.ffmpeg;
+            } catch (error) {
+                console.warn(`Could not initialize ffmpeg from the ${source.label} source`, error);
+                lastError = error;
+            }
+        }
+
+        throw new Error(`Could not load the MP4 encoder. Add the four local ffmpeg files under vendor/ffmpeg/ or check CDN access. ${lastError?.message || ''}`.trim());
+    })();
+
+    try {
+        return await state.assets.ffmpegLoadPromise;
+    } finally {
+        state.assets.ffmpegLoadPromise = null;
+    }
+}
+
+function canvasToPngBytes(canvas) {
+    return new Promise((resolve, reject) => {
+        canvas.toBlob(async blob => {
+            if (!blob) {
+                reject(new Error('Could not render a PNG frame.'));
+                return;
+            }
+
+            try {
+                resolve(new Uint8Array(await blob.arrayBuffer()));
+            } catch (error) {
+                reject(error);
+            }
+        }, 'image/png');
+    });
+}
+
+async function writeBackgroundPngFrames(ffmpeg, { width, height, fps, durationMs }, framePrefix) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const frameCount = Math.max(1, Math.round((durationMs / 1000) * fps));
+
+    canvas.width = width;
+    canvas.height = height;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    for (let frame = 0; frame < frameCount; frame++) {
+        const progress = frame / frameCount;
+        const frameName = `${framePrefix}-${String(frame).padStart(4, '0')}.png`;
+
+        renderAnimatedBackgroundFrame(ctx, width, height, progress);
+        await ffmpeg.writeFile(frameName, await canvasToPngBytes(canvas));
+
+        if (frame === 0 || (frame + 1) % 15 === 0 || frame === frameCount - 1) {
+            setDownloadButtonLoading(`Rendering frames ${frame + 1}/${frameCount}`);
+        }
+    }
+
+    return frameCount;
+}
+
+async function cleanupFfmpegFiles(ffmpeg, files) {
+    for (const file of files) {
+        try {
+            await ffmpeg.deleteFile?.(file);
+        } catch (error) {}
+    }
+}
+
+async function backgroundMp4ToBlob({ width, height, fps, durationMs } = BACKGROUND_MP4_SETTINGS) {
+    const ffmpeg = await ensureFfmpegLoaded();
+    const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const framePrefix = `background-frame-${runId}`;
+    const outputName = `background-${runId}.mp4`;
+    const writtenFiles = [];
+
+    setDownloadButtonLoading('Preparing PNG frames...');
+
+    try {
+        const frameCount = await writeBackgroundPngFrames(ffmpeg, { width, height, fps, durationMs }, framePrefix);
+        for (let frame = 0; frame < frameCount; frame++) {
+            writtenFiles.push(`${framePrefix}-${String(frame).padStart(4, '0')}.png`);
+        }
+        writtenFiles.push(outputName);
+
+        setDownloadButtonLoading('Encoding MP4...');
+        await ffmpeg.exec([
+            '-framerate', String(fps),
+            '-i', `${framePrefix}-%04d.png`,
+            '-c:v', 'libx264',
+            '-preset', 'medium',
+            '-crf', '15',
+            '-tune', 'animation',
+            '-profile:v', 'baseline',
+            '-level', '4.0',
+            '-g', String(fps),
+            '-keyint_min', String(fps),
+            '-sc_threshold', '0',
+            '-pix_fmt', 'yuv420p',
+            '-movflags', '+faststart',
+            '-an',
+            outputName
+        ]);
+
+        const outputData = await ffmpeg.readFile(outputName);
+        const bytes = outputData instanceof Uint8Array ? outputData : new Uint8Array(outputData);
+        return new Blob([bytes.buffer], { type: 'video/mp4' });
+    } finally {
+        await cleanupFfmpegFiles(ffmpeg, writtenFiles);
+    }
+}
+
+// Export the Background mode as either a standalone PNG or a seamless WEBM loop
+async function exportBackgroundImage() {
+    if (typeof saveAs === 'undefined') {
+        alert('FileSaver is still loading or unavailable. If you are opening this file offline, check that FileSaver can load from the CDN.');
+        return;
+    }
+
+    const format = getBackgroundExportFormat();
+
+    try {
+        els.downloadBtn.disabled = true;
+        setDownloadButtonLoading('Rendering...');
+
+        if (format === 'mp4') {
+            const settings = getBackgroundMp4Settings();
+            saveAs(await backgroundMp4ToBlob(settings), settings.fileName);
+        } else if (format === 'webm') {
+            const settings = getBackgroundWebmSettings();
+            saveAs(await backgroundVideoToBlob(settings), settings.fileName);
+        } else {
+            const fileName = isBackgroundExternalScreen()
+                ? `Cocoon_External_${getBackgroundExternalTheme()}_${getBackgroundExternalVariant()}.png`
+                : 'Cocoon_Background.png';
+            saveAs(await backgroundToBlob(), fileName);
+        }
+    } catch (error) {
+        console.error(error);
+        alert(`Background export failed: ${error.message || error}`);
+    } finally {
+        updateActionBar();
+    }
+}
+
 // Compose selected icons on canvas, add them to a ZIP, and trigger download
 async function exportSelectedIcons() {
+    if (state.mode === 'background') {
+        await exportBackgroundImage();
+        return;
+    }
+
     const selected = Array.from(state.selectedIcons);
     if (!selected.length) return;
 
@@ -1436,7 +3624,6 @@ async function exportSelectedIcons() {
         console.error(error);
         alert(`Export failed: ${error.message || error}`);
     } finally {
-        els.downloadBtn.textContent = 'Download Custom .zip';
         updateActionBar();
     }
 }
@@ -1472,6 +3659,82 @@ function bindEvents() {
     els.iconUploadInput.addEventListener('change', event => addCustomIcons(event.target.files));
     els.customUploadBtn.addEventListener('click', () => els.customBgUpload.click());
     els.customBgUpload.addEventListener('change', event => handleCustomBackgroundUpload(event.target.files[0]));
+    els.backgroundOverlayUploadBtn?.addEventListener('click', () => els.backgroundOverlayUpload?.click());
+    els.backgroundOverlayUpload?.addEventListener('change', event => handleBackgroundOverlayUpload(event.target.files[0]));
+    els.backgroundOverlayRemoveBtn?.addEventListener('click', clearBackgroundOverlay);
+    els.backgroundOverlayResetBtn?.addEventListener('click', resetBackgroundOverlayControls);
+
+    [els.backgroundOverlayScale, els.backgroundOverlayX, els.backgroundOverlayY, els.backgroundOverlayRot].forEach(slider => {
+        slider?.addEventListener('input', applyBackgroundOverlayControls);
+    });
+
+    els.backgroundDurationSlider?.addEventListener('input', () => {
+        state.backgroundVideoDurationMs = Number(els.backgroundDurationSlider.value || 8) * 1000;
+        syncBackgroundExportControls();
+        if (state.mode === 'background') drawBackgroundPreviewFrame(0);
+    });
+
+    els.backgroundAnimationSelect?.addEventListener('change', () => {
+        state.backgroundAnimation = els.backgroundAnimationSelect.value || 'drift';
+        syncBackgroundExportControls();
+        if (state.mode === 'background') {
+            updateBackgroundPreview();
+        }
+    });
+
+    els.backgroundScreenBtns?.forEach(button => {
+        button.addEventListener('click', () => {
+            state.backgroundScreen = button.dataset.backgroundScreen === 'external' ? 'external' : 'main';
+            if (isBackgroundExternalScreen()) {
+                state.backgroundExportFormat = 'png';
+            }
+            state.assets.backgroundExternalPreviewKey = '';
+            syncExternalPreviewFolderImage();
+            syncBackgroundExportControls();
+            updateBackgroundPreview();
+            updateActionBar();
+        });
+    });
+
+    els.backgroundExternalVariantBtns?.forEach(button => {
+        button.addEventListener('click', () => {
+            state.backgroundExternalVariant = button.dataset.externalVariant || 'margin';
+            state.assets.backgroundExternalPreviewKey = '';
+            syncExternalPreviewFolderImage();
+            syncBackgroundExportControls();
+            updateBackgroundPreview();
+            updateActionBar();
+        });
+    });
+
+    els.backgroundExternalShowFolders?.addEventListener('change', () => {
+        state.backgroundExternalShowFolders = Boolean(els.backgroundExternalShowFolders.checked);
+        syncExternalPreviewFolderImage();
+        syncBackgroundExportControls();
+        drawBackgroundPreviewFrame(0);
+    });
+
+    els.backgroundExternalPanelResetBtn?.addEventListener('click', () => {
+        resetExternalPanelColorsToThemeDefault();
+    });
+
+    els.backgroundExternalPanelMatchBtn?.addEventListener('click', () => {
+        matchExternalPanelColorsToBackground();
+    });
+
+    [
+        [els.backgroundExternalPanelTop, 'backgroundExternalPanelCustomTop'],
+        [els.backgroundExternalPanelBottom, 'backgroundExternalPanelCustomBottom']
+    ].forEach(([input, stateKey]) => {
+        input?.addEventListener('input', () => {
+            state[stateKey] = normalizeHex(input.value) || input.value;
+            state.assets.backgroundExternalPreviewKey = '';
+            syncExternalPreviewFolderImage();
+            syncBackgroundExportControls();
+            updateBackgroundPreview();
+            updateActionBar();
+        });
+    });
 
     els.tabBtns.forEach(button => {
         button.addEventListener('click', () => {
@@ -1497,10 +3760,24 @@ function bindEvents() {
         button.addEventListener('click', () => setPalette(button.dataset.c1, button.dataset.c2, { rebuild: state.mode === 'generator' && state.activeTab === 'apps' }));
     });
 
+    els.backgroundOriginalPresetBtn?.addEventListener('click', () => {
+        setPalette(BACKGROUND_DEFAULT_PRESET.top, BACKGROUND_DEFAULT_PRESET.bottom, { userOverride: false });
+    });
+
+    els.backgroundExportBtns?.forEach(button => {
+        button.addEventListener('click', () => {
+            if (button.disabled) return;
+            state.backgroundExportFormat = button.dataset.exportFormat || 'png';
+            syncBackgroundExportControls();
+            updateActionBar();
+        });
+    });
+
     [els.colorTop, els.colorBottom].forEach(input => {
         input.addEventListener('input', () => {
             disableBrandColorsForCurrentContext();
             syncPaletteControls();
+            rememberFolderPreviewPaletteFromControls();
             clearAutoColor();
             updateGlobalDesign();
         });
@@ -1515,6 +3792,7 @@ function bindEvents() {
     els.styleSelect.addEventListener('change', () => {
         if (state.mode === 'generator' && state.activeTab !== 'apps') {
             state.generatorStyle = els.styleSelect.value || DEFAULTS.style;
+            state.assets.backgroundExternalFolderPreviewKey = '';
         }
 
         updateStyleControls();
@@ -1538,6 +3816,8 @@ function init() {
     updateStyleControls();
     syncTemporaryIconScale();
     updateModeControls();
+    applyBackgroundOverlayControls();
+    syncBackgroundVideoControls();
     updateGlobalDesign();
     buildGrid();
     updateActionBar();

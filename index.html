@@ -118,6 +118,8 @@
             margin-bottom: 20px;
         }
 
+        .control-group[hidden] { display: none !important; }
+
         .control-group {
             display: flex;
             flex-direction: column;
@@ -198,7 +200,7 @@
         .choice-icon { font-size: 1.15rem; line-height: 1; }
         .choice-button strong { font-size: 0.78rem; line-height: 1.1; }
 
-        .tilt-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .tilt-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
         .tilt-grid .choice-button { min-height: 54px; grid-template-columns: auto auto; justify-content: center; }
 
         .custom-upload {
@@ -257,7 +259,7 @@
 
         .color-actions {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 8px;
         }
 
@@ -286,7 +288,8 @@
         .position-reset-btn { min-height: 30px; padding: 6px 10px; text-transform: none; letter-spacing: 0; font-size: 0.72rem; }
         .position-reset-btn svg { width: 13px; height: 13px; }
 
-        .dock-note {
+        .dock-note,
+        .background-note {
             display: flex;
             align-items: flex-start;
             gap: 10px;
@@ -299,22 +302,26 @@
             line-height: 1.45;
         }
 
-        .dock-note::before {
+        .dock-note::before,
+        .background-note::before {
             content: 'ⓘ';
             flex: 0 0 auto;
             font-weight: 900;
             color: var(--accent);
         }
 
-        .dock-note a {
+        .dock-note a,
+        .background-note a {
             color: var(--accent);
             font-weight: 850;
             text-decoration: none;
         }
 
-        .dock-note a:hover { text-decoration: underline; }
+        .dock-note a:hover,
+        .background-note a:hover { text-decoration: underline; }
 
-        .dock-note[hidden] { display: none !important; }
+        .dock-note[hidden],
+        .background-note[hidden] { display: none !important; }
 
         .preset-grid {
             display: grid;
@@ -336,7 +343,8 @@
 
         .preset-btn:hover { transform: translateY(-1px) scale(1.05); }
         .preset-btn.active { outline-color: var(--accent); }
-
+        .preset-btn.background-preset-only { display: none; }
+        body[data-mode="background"] .preset-btn.background-preset-only { display: inline-block; }
         .slider-row {
             display: grid;
             grid-template-columns: 54px minmax(120px, 1fr) 46px;
@@ -476,6 +484,284 @@
         .card.add-card:hover { border-color: var(--accent); background: var(--accent-soft); }
         .plus-sign { color: #93c5fd; font-size: 3.4rem; font-weight: 250; line-height: 0.85; }
 
+
+
+        .background-panel {
+            width: 100%;
+            margin: 0 auto 5rem;
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-lg);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+
+        .background-panel[hidden] { display: none !important; }
+
+        .background-export-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .background-export-block {
+            display: grid;
+            gap: 10px;
+        }
+
+        .background-inline-controls[hidden],
+        .background-animation-inline[hidden],
+        .background-duration-inline[hidden] { display: none !important; }
+
+        .background-inline-controls {
+            display: none;
+            gap: 10px;
+        }
+
+        .background-inline-controls.is-visible { display: grid; }
+
+        .background-motion-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 10px;
+        }
+
+        .background-duration-inline,
+        .background-animation-inline {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--surface-soft);
+        }
+
+        .background-duration-inline label,
+        .background-animation-inline label {
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 850;
+            white-space: nowrap;
+        }
+        .background-duration-inline input[type="range"] { min-width: 120px; flex: 1 1 auto; }
+        .background-duration-inline .val-display { min-width: 32px; }
+        .background-animation-inline select {
+            min-width: 0;
+            flex: 1 1 auto;
+            padding: 9px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            color: var(--ink);
+            font-size: 0.84rem;
+            font-weight: 800;
+            outline: none;
+        }
+        .background-animation-inline select:focus { border-color: var(--accent); }
+
+        .background-export-toggle {
+            display: inline-flex;
+            padding: 4px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--surface-soft);
+            gap: 4px;
+        }
+
+        .background-export-btn {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            padding: 9px 14px;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.16s ease, color 0.16s ease;
+        }
+
+        .background-export-btn:hover {
+            color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        .background-export-btn.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        .background-export-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .background-screen-tabs {
+            margin: 0 auto 20px;
+        }
+
+        .background-screen-tabs[hidden],
+        .background-external-variant-group[hidden] {
+            display: none !important;
+        }
+
+        .background-external-variant-toggle {
+            flex-wrap: wrap;
+        }
+
+        .background-external-preview-group[hidden],
+        .background-external-panel-group[hidden],
+        .background-external-panel-custom[hidden] {
+            display: none !important;
+        }
+
+        .background-external-panel-group {
+            gap: 10px;
+            padding-top: 14px;
+            border-top: 1px solid var(--line);
+        }
+
+        .background-external-panel-custom {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .background-external-panel-actions {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .background-preview-toggle {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--surface-soft);
+            color: var(--muted);
+            cursor: pointer;
+            font-weight: 850;
+            user-select: none;
+        }
+
+        .background-preview-toggle input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .background-preview-switch {
+            position: relative;
+            width: 38px;
+            height: 22px;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            background: #d1d5db;
+            transition: background 0.16s ease;
+        }
+
+        .background-preview-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18);
+            transition: transform 0.16s ease;
+        }
+
+        .background-preview-toggle input:checked + .background-preview-switch {
+            background: var(--accent);
+        }
+
+        .background-preview-toggle input:checked + .background-preview-switch::after {
+            transform: translateX(16px);
+        }
+
+        .background-preview-toggle-copy {
+            display: grid;
+            gap: 1px;
+        }
+
+        .background-preview-toggle-copy strong {
+            color: var(--ink);
+            font-size: 0.82rem;
+        }
+
+        .background-preview-toggle-copy small {
+            color: var(--muted);
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+
+        .background-export-help {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .background-preview-shell {
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--surface-soft);
+        }
+
+        @media (min-width: 960px) {
+            .background-preview-shell.external-preview-compact {
+                max-width: 50%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        .background-preview-image {
+            width: 100%;
+            display: block;
+            aspect-ratio: 16 / 9;
+            border-radius: 14px;
+            object-fit: cover;
+            background: #e5e7eb;
+        }
+
+        .background-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .dashboard.background-dashboard {
+            grid-template-columns: minmax(420px, 0.95fr) minmax(360px, 0.85fr);
+            align-items: stretch;
+            justify-content: stretch;
+        }
+
+        .dashboard.background-dashboard > .control-group {
+            height: 100%;
+        }
+
+        .dashboard.background-dashboard #background-overlay-group {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
         .action-bar {
             position: fixed;
             left: 50%;
@@ -495,18 +781,37 @@
         }
 
         .action-count { color: white; font-size: 0.9rem; font-weight: 850; white-space: nowrap; }
-        .download-btn { padding: 10px 18px; border-radius: 999px; background: var(--accent); color: white; cursor: pointer; font-size: 0.86rem; font-weight: 900; }
+        .download-btn { padding: 10px 18px; border-radius: 999px; background: var(--accent); color: white; cursor: pointer; font-size: 0.86rem; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
         .download-btn:hover:not(:disabled) { background: #1d4ed8; }
         .download-btn:disabled { background: #4b5563; cursor: not-allowed; }
+        .download-btn.is-loading { background: var(--accent); }
+        .download-btn.is-loading:disabled { background: var(--accent); cursor: progress; opacity: 1; }
+        .download-btn.is-loading::before { content: ''; width: 14px; height: 14px; border-radius: 999px; border: 2px solid rgba(255,255,255,0.35); border-top-color: white; animation: button-spin 0.8s linear infinite; flex: 0 0 auto; }
+
+        @keyframes button-spin { to { transform: rotate(360deg); } }
+
+        .control-group.is-disabled { opacity: 0.55; }
+        .control-group.is-disabled .control-title,
+        .control-group.is-disabled .field-label,
+        .control-group.is-disabled .muted-note { color: var(--muted); }
+
+        .control-title-actions { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .background-upload-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .muted-note { color: var(--muted); font-size: 0.76rem; line-height: 1.4; }
+
 
         @media (max-width: 900px) {
             body { padding: 14px 14px 108px; }
             .app-header { align-items: stretch; flex-direction: column; }
-            .mode-nav { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .mode-nav { width: 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
             .main-tab-btn { justify-content: center; }
             .dashboard { grid-template-columns: 1fr; }
+            .dashboard.background-dashboard { grid-template-columns: 1fr; }
+            .background-export-row { align-items: stretch; }
+            .background-motion-grid { grid-template-columns: 1fr; }
+            .dashboard.background-dashboard #background-overlay-group { grid-column: auto; grid-row: auto; }
             .choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .color-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .color-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
             .preset-grid { grid-template-columns: repeat(5, 34px); }
         }
 
@@ -530,6 +835,9 @@
         <button type="button" class="main-tab-btn" data-mode="assets" onclick="switchMode('assets')">
             <span>Logos</span>
         </button>
+        <button type="button" class="main-tab-btn" data-mode="background" onclick="switchMode('background')">
+            <span>Background</span>
+        </button>
     </nav>
 </header>
 
@@ -542,6 +850,10 @@
 
             <div class="dock-note" id="dock-note" hidden>
                 <span>Note for Cocoon 3.0 users: In the current version, you need to use <a href="https://f-droid.org/packages/com.kaanelloed.iconeration/" target="_blank" rel="noopener noreferrer">Alembicons</a> to generate an icon pack that can be selected in the Cocoon Dock settings.</span>
+            </div>
+
+            <div class="background-note" id="background-note" hidden>
+                <span>MP4 uses ffmpeg.wasm. It is slower, but it is the most compatible option for Cocoon.</span>
             </div>
 
             <div class="section-stack control-section control-nb" id="style-control-row">
@@ -616,6 +928,30 @@
                         </button>
                     </div>
                 </div>
+
+                <div class="section-stack background-external-panel-group" id="background-external-panel-group" hidden>
+                    <span class="field-label">External panel colors</span>
+                    <div class="color-inputs background-external-panel-custom" id="background-external-panel-custom">
+                        <label class="color-card external-panel-color-card">
+                            <input type="color" id="background-external-panel-top" value="#F8F8F8" aria-label="External panel top color">
+                            <span class="color-meta"><strong>Panel top</strong><span id="background-external-panel-top-value">#F8F8F8</span></span>
+                        </label>
+                        <label class="color-card external-panel-color-card">
+                            <input type="color" id="background-external-panel-bottom" value="#E9EDF1" aria-label="External panel bottom color">
+                            <span class="color-meta"><strong>Panel bottom</strong><span id="background-external-panel-bottom-value">#E9EDF1</span></span>
+                        </label>
+                    </div>
+                    <div class="color-actions background-external-panel-actions">
+                        <button type="button" id="background-external-panel-reset-btn" class="action-btn btn-reset">
+                            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                            Reset
+                        </button>
+                        <button type="button" id="background-external-panel-match-btn" class="action-btn btn-auto">
+                            <svg viewBox="0 0 24 24"><path d="M21 16.09v-4.99a5 5 0 0 0-2.58-4.42l-4.5-2.5a5 5 0 0 0-5.04 0l-4.5 2.5A5 5 0 0 0 1.8 11.1v4.99a5 5 0 0 0 2.58 4.42l4.5 2.5a5 5 0 0 0 5.04 0l4.5-2.5a5 5 0 0 0 2.58-4.42z"/><circle cx="11.4" cy="11.4" r="2.4"/></svg>
+                            Background
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="section-stack control-section">
@@ -631,6 +967,32 @@
                     <button type="button" class="preset-btn" data-c1="#C5C5C5" data-c2="#9DA1A4" style="--c1:#C5C5C5;--c2:#9DA1A4" aria-label="Light gray preset"></button>
                     <button type="button" class="preset-btn" data-c1="#838C97" data-c2="#626975" style="--c1:#838C97;--c2:#626975" aria-label="Dark gray preset"></button>
                     <button type="button" class="preset-btn" data-c1="#383838" data-c2="#2C2C2C" style="--c1:#383838;--c2:#2C2C2C" aria-label="Black preset"></button>
+                    <button type="button" id="background-original-preset-btn" class="preset-btn background-preset-only" data-c1="#EFEFF2" data-c2="#CFCFDB" style="--c1:#EFEFF2;--c2:#CFCFDB" aria-label="Light Cocoon theme preset" title="Light Cocoon theme"></button>
+                    <button type="button" id="background-dark-preset-btn" class="preset-btn background-preset-only" data-c1="#2A2A2A" data-c2="#1E1E1E" style="--c1:#2A2A2A;--c2:#1E1E1E" aria-label="Dark Cocoon theme preset" title="Dark Cocoon theme"></button>
+                </div>
+            </div>
+
+            <div class="section-stack control-section background-inline-controls" id="background-inline-controls" hidden>
+                <span class="field-label">Motion</span>
+                <div class="background-motion-grid">
+                    <div class="background-animation-inline" id="background-animation-group">
+                        <label for="background-animation-select">Animation</label>
+                        <select id="background-animation-select">
+                            <option value="drift">Tile Drift</option>
+                            <option value="ripple">Ripple</option>
+                            <option value="echo">Tile Echo</option>
+                            <option value="tapEcho">Tap Echo</option>
+                            <option value="swap">Vertical Swap</option>
+                            <option value="swapDrift">Diagonal Column Flow</option>
+                            <option value="diagonalColumnFlowContinuous">Diagonal Column Flow Continuous</option>
+                            <option value="diagonalColumnFlowVariable">Diagonal Column Flow Variable Speed</option>
+                        </select>
+                    </div>
+                    <div class="background-duration-inline" id="background-video-group">
+                        <label for="background-duration-slider">Duration</label>
+                        <input type="range" id="background-duration-slider" min="4" max="20" value="8">
+                        <span class="val-display" id="background-duration-value">8s</span>
+                    </div>
                 </div>
             </div>
         </section>
@@ -664,6 +1026,47 @@
                 <span class="val-display" id="val-rot">0°</span>
             </div>
         </section>
+
+        <section class="control-group" id="background-overlay-group" hidden>
+            <div class="control-title">
+                <span>Overlay Image</span>
+                <div class="control-title-actions">
+                    <button type="button" id="background-overlay-reset-btn" class="action-btn btn-reset position-reset-btn" aria-label="Reset overlay image adjustments">
+                        <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        Reset
+                    </button>
+                    <button type="button" id="background-overlay-remove-btn" class="action-btn position-reset-btn" aria-label="Remove overlay image">Remove</button>
+                </div>
+            </div>
+            <div class="section-stack control-section control-nb">
+                <div class="background-upload-row">
+                    <button type="button" id="background-overlay-upload-btn" class="action-btn">Upload image</button>
+                    <input type="file" id="background-overlay-upload" accept="image/png, image/jpeg, image/webp, image/svg+xml" style="display: none;">
+                </div>
+                <span class="muted-note" id="background-overlay-note">No overlay image selected</span>
+            </div>
+            <div class="slider-row choice-button">
+                <label for="background-overlay-scale">Scale</label>
+                <input type="range" id="background-overlay-scale" min="10" max="150" value="50">
+                <span class="val-display" id="background-overlay-scale-value">50%</span>
+            </div>
+            <div class="slider-row choice-button">
+                <label for="background-overlay-x">Pos X</label>
+                <input type="range" id="background-overlay-x" min="-50" max="50" value="0">
+                <span class="val-display" id="background-overlay-x-value">0</span>
+            </div>
+            <div class="slider-row choice-button">
+                <label for="background-overlay-y">Pos Y</label>
+                <input type="range" id="background-overlay-y" min="-50" max="50" value="0">
+                <span class="val-display" id="background-overlay-y-value">0</span>
+            </div>
+            <div class="slider-row choice-button">
+                <label for="background-overlay-rot">Tilt</label>
+                <input type="range" id="background-overlay-rot" min="-180" max="180" value="0">
+                <span class="val-display" id="background-overlay-rot-value">0°</span>
+            </div>
+        </section>
+
     </div>
 
     <div id="sub-tabs" class="tabs">
@@ -673,6 +1076,52 @@
         <button type="button" class="tab-btn" data-tab="apps">Apps</button>
         <button type="button" class="tab-btn" data-tab="custom">Custom</button>
     </div>
+
+    <div id="background-screen-tabs" class="tabs background-screen-tabs" hidden role="tablist" aria-label="Background screen">
+        <button type="button" class="tab-btn background-screen-btn active" data-background-screen="main">Main</button>
+        <button type="button" class="tab-btn background-screen-btn" data-background-screen="external">External</button>
+    </div>
+
+
+
+    <section id="background-panel" class="background-panel" hidden>
+        <div class="background-export-row">
+            <div class="background-export-block">
+                <span class="field-label">Export format</span>
+                <div class="background-export-toggle" role="group" aria-label="Background export format">
+                    <button type="button" class="background-export-btn active" data-export-format="png">PNG</button>
+                    <button type="button" class="background-export-btn" data-export-format="webm">WEBM</button>
+                    <button type="button" class="background-export-btn" data-export-format="mp4">MP4</button>
+                </div>
+            </div>
+            <div class="background-export-block background-external-variant-group" id="background-external-variant-group" hidden>
+                <span class="field-label">External version</span>
+                <div class="background-export-toggle background-external-variant-toggle" role="group" aria-label="External background version">
+                    <button type="button" class="background-export-btn background-external-variant-btn active" data-external-variant="margin">Margin</button>
+                    <button type="button" class="background-export-btn background-external-variant-btn" data-external-variant="full">No Margin</button>
+                    <button type="button" class="background-export-btn background-external-variant-btn" data-external-variant="gradient">Gradient only</button>
+                </div>
+            </div>
+            <div class="background-export-block background-external-preview-group" id="background-external-preview-group" hidden>
+                <span class="field-label">Preview</span>
+                <label class="background-preview-toggle" for="background-external-show-folders">
+                    <input type="checkbox" id="background-external-show-folders">
+                    <span class="background-preview-switch" aria-hidden="true"></span>
+                    <span class="background-preview-toggle-copy">
+                        <strong>Show folders</strong>
+                        <small>Preview only</small>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="background-preview-shell">
+            <canvas id="background-preview-canvas" class="background-preview-image" width="1280" height="720" aria-label="Background preview"></canvas>
+            <div class="background-meta">
+                <span>Cocoon</span>
+                <span id="background-meta-detail">1920×1080 PNG</span>
+            </div>
+        </div>
+    </section>
 
     <div id="icon-grid" class="grid"></div>
 </div>
@@ -685,6 +1134,7 @@
 <script src="catalog.js"></script>
 <script src="icon-templates.js"></script>
 <script src="dock-icons.js"></script>
+<script src="background-templates.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

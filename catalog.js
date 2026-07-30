@@ -185,7 +185,6 @@
             { name: 'Pokémon (Master Ball)', presetIndex: 6, asset: 'assets/games/masterball.svg' },
             { name: 'Pokémon (Ultra Ball)', presetIndex: 9, asset: 'assets/games/ultraball.svg' },
             { name: 'Pokémon (Great Ball)', presetIndex: 1, asset: 'assets/games/greatball.svg' },
-            { name: 'Pokémon (Premier Ball)', presetIndex: 5, asset: 'assets/games/premier-ball.svg' },
             { name: 'Metroid', presetIndex: 5, asset: 'assets/games/metroid.svg' },
             { name: 'Kirby', presetIndex: 5, asset: 'assets/games/kirby.svg' },
             { name: 'Fire Emblem', presetIndex: 5, asset: 'assets/games/fire-emblem.svg' },
