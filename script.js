@@ -3247,6 +3247,7 @@ function drawDiagonalColumnFlowVariableBackgroundGrid(ctx, width, height, progre
     const periodOffsetY = 388;
     const speedCycleRange = 7;
     const wrapOffsets = [-1, 0, 1];
+    const wrapOpacityCompensation = 0.34;
 
     stripes.forEach((stripeTiles, stripeIndex) => {
         const stripeOrder = stripeIndex - minStripeIndex;
@@ -3267,7 +3268,7 @@ function drawDiagonalColumnFlowVariableBackgroundGrid(ctx, width, height, progre
         );
         const xOffset = periodOffsetX * moveProgress;
         const yOffset = periodOffsetY * moveProgress;
-        const opacity = 1 + 0.035 * Math.sin(moveProgress * Math.PI);
+        const opacity = (1 + 0.035 * Math.sin(moveProgress * Math.PI)) * wrapOpacityCompensation;
 
         wrapOffsets.forEach(wrapIndex => {
             const wrapX = xOffset + periodOffsetX * wrapIndex;
