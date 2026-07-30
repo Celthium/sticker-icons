@@ -605,7 +605,8 @@
         }
 
         .background-screen-tabs[hidden],
-        .background-external-variant-group[hidden] {
+        .background-external-variant-group[hidden],
+        .background-external-dock-group[hidden] {
             display: none !important;
         }
 
@@ -613,10 +614,47 @@
             flex-wrap: wrap;
         }
 
+        .background-colors-control {
+            gap: 0;
+        }
+
+        .background-colors-layout {
+            display: block;
+        }
+
+        .background-colors-main,
+        .background-external-settings-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .background-external-settings-panel[hidden],
         .background-external-preview-group[hidden],
         .background-external-panel-group[hidden],
-        .background-external-panel-custom[hidden] {
+        .background-external-panel-custom[hidden],
+        .background-external-panel-opacity-group[hidden],
+        .background-external-panel-opacity-row[hidden] {
             display: none !important;
+        }
+
+        .background-external-settings-panel .background-export-block {
+            min-width: 0;
+        }
+
+        .background-external-settings-panel .background-export-toggle {
+            width: 100%;
+        }
+
+        .background-external-settings-panel .background-export-btn {
+            flex: 1 1 auto;
+            white-space: nowrap;
+        }
+
+        .background-external-opacity-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .background-external-panel-group {
@@ -633,6 +671,29 @@
 
         .background-external-panel-actions {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .background-external-panel-opacity-row {
+            margin-top: 2px;
+        }
+
+        .background-external-dock-group.is-disabled,
+        .background-external-panel-group.is-disabled,
+        .background-external-opacity-group.is-disabled {
+            opacity: 0.45;
+            filter: grayscale(0.25);
+        }
+
+        .background-external-dock-group.is-disabled .background-export-btn,
+        .background-external-panel-group.is-disabled .action-btn,
+        .background-external-panel-group.is-disabled .color-card,
+        .background-external-opacity-group.is-disabled .slider-row {
+            cursor: not-allowed;
+        }
+
+        .background-external-panel-group.is-disabled .color-card,
+        .background-external-opacity-group.is-disabled .slider-row {
+            background: var(--surface-soft);
         }
 
         .background-preview-toggle {
@@ -757,7 +818,8 @@
             height: 100%;
         }
 
-        .dashboard.background-dashboard #background-overlay-group {
+        .dashboard.background-dashboard #background-overlay-group,
+        .dashboard.background-dashboard #background-external-settings-panel {
             grid-column: 2;
             grid-row: 1;
         }
@@ -809,7 +871,8 @@
             .dashboard.background-dashboard { grid-template-columns: 1fr; }
             .background-export-row { align-items: stretch; }
             .background-motion-grid { grid-template-columns: 1fr; }
-            .dashboard.background-dashboard #background-overlay-group { grid-column: auto; grid-row: auto; }
+            .dashboard.background-dashboard #background-overlay-group,
+            .dashboard.background-dashboard #background-external-settings-panel { grid-column: auto; grid-row: auto; }
             .choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .color-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
             .preset-grid { grid-template-columns: repeat(5, 34px); }
@@ -836,7 +899,7 @@
             <span>Logos</span>
         </button>
         <button type="button" class="main-tab-btn" data-mode="background" onclick="switchMode('background')">
-            <span>Background</span>
+            <span>Wallpaper</span>
         </button>
     </nav>
 </header>
@@ -882,7 +945,7 @@
                         <span class="choice-icon">▧</span><strong>Custom</strong>
                     </button>
                 </div>
-                <button type="button" id="custom-upload-btn" class="custom-upload">Upload custom background</button>
+                <button type="button" id="custom-upload-btn" class="custom-upload">Upload custom wallpaper</button>
                 <input type="file" id="custom-bg-upload" accept="image/png, image/jpeg, image/webp" style="display: none;">
             </div>
 
@@ -900,57 +963,62 @@
                 </div>
             </div>
 
-            <div class="section-stack control-section">
-                <span class="field-label">Colors</span>
-                <div class="color-layout">
-                    <div class="color-inputs">
-                        <label class="color-card">
-                            <input type="color" id="color-top" value="#FEC2A1" aria-label="Top color">
-                            <span class="color-meta"><strong>Top</strong><span id="color-top-value">#FEC2A1</span></span>
-                        </label>
-                        <label class="color-card">
-                            <input type="color" id="color-bottom" value="#F58422" aria-label="Bottom color">
-                            <span class="color-meta"><strong>Bottom</strong><span id="color-bottom-value">#F58422</span></span>
-                        </label>
-                    </div>
-                    <div class="color-actions">
-                        <button type="button" id="reset-color-btn" class="action-btn btn-reset">
-                            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                            Reset
-                        </button>
-                        <button type="button" id="random-color-btn" class="action-btn btn-random">
-                            <svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
-                            Random
-                        </button>
-                        <button type="button" id="auto-color-btn" class="action-btn btn-auto">
-                            <svg viewBox="0 0 24 24"><path d="M21 16.09v-4.99a5 5 0 0 0-2.58-4.42l-4.5-2.5a5 5 0 0 0-5.04 0l-4.5 2.5A5 5 0 0 0 1.8 11.1v4.99a5 5 0 0 0 2.58 4.42l4.5 2.5a5 5 0 0 0 5.04 0l4.5-2.5a5 5 0 0 0 2.58-4.42z"/><circle cx="11.4" cy="11.4" r="2.4"/></svg>
-                            Auto
-                        </button>
-                    </div>
-                </div>
+            <div class="section-stack control-section background-colors-control">
+                <div class="background-colors-layout">
+                    <div class="background-colors-main">
+                        <span class="field-label">Colors</span>
+                        <div class="color-layout">
+                            <div class="color-inputs">
+                                <label class="color-card">
+                                    <input type="color" id="color-top" value="#FEC2A1" aria-label="Top color">
+                                    <span class="color-meta"><strong>Top</strong><span id="color-top-value">#FEC2A1</span></span>
+                                </label>
+                                <label class="color-card">
+                                    <input type="color" id="color-bottom" value="#F58422" aria-label="Bottom color">
+                                    <span class="color-meta"><strong>Bottom</strong><span id="color-bottom-value">#F58422</span></span>
+                                </label>
+                            </div>
+                            <div class="color-actions">
+                                <button type="button" id="reset-color-btn" class="action-btn btn-reset">
+                                    <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                                    Reset
+                                </button>
+                                <button type="button" id="random-color-btn" class="action-btn btn-random">
+                                    <svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+                                    Random
+                                </button>
+                                <button type="button" id="auto-color-btn" class="action-btn btn-auto">
+                                    <svg viewBox="0 0 24 24"><path d="M21 16.09v-4.99a5 5 0 0 0-2.58-4.42l-4.5-2.5a5 5 0 0 0-5.04 0l-4.5 2.5A5 5 0 0 0 1.8 11.1v4.99a5 5 0 0 0 2.58 4.42l4.5 2.5a5 5 0 0 0 5.04 0l4.5-2.5a5 5 0 0 0 2.58-4.42z"/><circle cx="11.4" cy="11.4" r="2.4"/></svg>
+                                    Auto
+                                </button>
+                            </div>
+                        </div>
 
-                <div class="section-stack background-external-panel-group" id="background-external-panel-group" hidden>
-                    <span class="field-label">External panel colors</span>
-                    <div class="color-inputs background-external-panel-custom" id="background-external-panel-custom">
-                        <label class="color-card external-panel-color-card">
-                            <input type="color" id="background-external-panel-top" value="#F8F8F8" aria-label="External panel top color">
-                            <span class="color-meta"><strong>Panel top</strong><span id="background-external-panel-top-value">#F8F8F8</span></span>
-                        </label>
-                        <label class="color-card external-panel-color-card">
-                            <input type="color" id="background-external-panel-bottom" value="#E9EDF1" aria-label="External panel bottom color">
-                            <span class="color-meta"><strong>Panel bottom</strong><span id="background-external-panel-bottom-value">#E9EDF1</span></span>
-                        </label>
+                        <div class="section-stack background-external-panel-group" id="background-external-panel-group" hidden>
+                            <span class="field-label">External panel colors</span>
+                            <div class="color-inputs background-external-panel-custom" id="background-external-panel-custom">
+                                <label class="color-card external-panel-color-card">
+                                    <input type="color" id="background-external-panel-top" value="#F8F8F8" aria-label="External panel top color">
+                                    <span class="color-meta"><strong>Panel top</strong><span id="background-external-panel-top-value">#F8F8F8</span></span>
+                                </label>
+                                <label class="color-card external-panel-color-card">
+                                    <input type="color" id="background-external-panel-bottom" value="#E9EDF1" aria-label="External panel bottom color">
+                                    <span class="color-meta"><strong>Panel bottom</strong><span id="background-external-panel-bottom-value">#E9EDF1</span></span>
+                                </label>
+                            </div>
+                            <div class="color-actions background-external-panel-actions">
+                                <button type="button" id="background-external-panel-reset-btn" class="action-btn btn-reset">
+                                    <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                                    Reset
+                                </button>
+                                <button type="button" id="background-external-panel-match-btn" class="action-btn btn-auto">
+                                    <svg viewBox="0 0 24 24"><path d="M21 16.09v-4.99a5 5 0 0 0-2.58-4.42l-4.5-2.5a5 5 0 0 0-5.04 0l-4.5 2.5A5 5 0 0 0 1.8 11.1v4.99a5 5 0 0 0 2.58 4.42l4.5 2.5a5 5 0 0 0 5.04 0l4.5-2.5a5 5 0 0 0 2.58-4.42z"/><circle cx="11.4" cy="11.4" r="2.4"/></svg>
+                                    Wallpaper
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="color-actions background-external-panel-actions">
-                        <button type="button" id="background-external-panel-reset-btn" class="action-btn btn-reset">
-                            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                            Reset
-                        </button>
-                        <button type="button" id="background-external-panel-match-btn" class="action-btn btn-auto">
-                            <svg viewBox="0 0 24 24"><path d="M21 16.09v-4.99a5 5 0 0 0-2.58-4.42l-4.5-2.5a5 5 0 0 0-5.04 0l-4.5 2.5A5 5 0 0 0 1.8 11.1v4.99a5 5 0 0 0 2.58 4.42l4.5 2.5a5 5 0 0 0 5.04 0l4.5-2.5a5 5 0 0 0 2.58-4.42z"/><circle cx="11.4" cy="11.4" r="2.4"/></svg>
-                            Background
-                        </button>
-                    </div>
+
                 </div>
             </div>
 
@@ -996,6 +1064,34 @@
                 </div>
             </div>
         </section>
+
+        <section class="control-group background-external-settings-panel" id="background-external-settings-panel" hidden>
+            <div class="control-title">External Settings</div>
+                        <div class="background-export-block background-external-variant-group" id="background-external-variant-group" hidden>
+                            <span class="field-label">External version</span>
+                            <div class="background-export-toggle background-external-variant-toggle" role="group" aria-label="External background version">
+                                <button type="button" class="background-export-btn background-external-variant-btn active" data-external-variant="margin">Margin</button>
+                                <button type="button" class="background-export-btn background-external-variant-btn" data-external-variant="full">No Margin</button>
+                                <button type="button" class="background-export-btn background-external-variant-btn" data-external-variant="gradient">Gradient only</button>
+                            </div>
+                        </div>
+                        <div class="background-export-block background-external-dock-group" id="background-external-dock-group" hidden>
+                            <span class="field-label">Dock position</span>
+                            <div class="background-export-toggle background-external-variant-toggle" role="group" aria-label="External dock position">
+                                <button type="button" class="background-export-btn background-external-dock-btn active" data-external-dock-position="top">Top</button>
+                                <button type="button" class="background-export-btn background-external-dock-btn" data-external-dock-position="bottom">Bottom</button>
+                            </div>
+                        </div>
+                        <div class="background-external-opacity-group" id="background-external-panel-opacity-group">
+                            <span class="field-label">Panel opacity</span>
+                            <div class="slider-row choice-button background-external-panel-opacity-row">
+                                <label for="background-external-panel-opacity">Opacity</label>
+                                <input type="range" id="background-external-panel-opacity" min="45" max="100" value="100">
+                                <span id="background-external-panel-opacity-value">100%</span>
+                            </div>
+                        </div>
+                    </section>
+
 
         <section class="control-group" id="icon-controls-group">
             <div class="control-title">
@@ -1077,7 +1173,7 @@
         <button type="button" class="tab-btn" data-tab="custom">Custom</button>
     </div>
 
-    <div id="background-screen-tabs" class="tabs background-screen-tabs" hidden role="tablist" aria-label="Background screen">
+    <div id="background-screen-tabs" class="tabs background-screen-tabs" hidden role="tablist" aria-label="Wallpaper screen">
         <button type="button" class="tab-btn background-screen-btn active" data-background-screen="main">Main</button>
         <button type="button" class="tab-btn background-screen-btn" data-background-screen="external">External</button>
     </div>
@@ -1088,18 +1184,10 @@
         <div class="background-export-row">
             <div class="background-export-block">
                 <span class="field-label">Export format</span>
-                <div class="background-export-toggle" role="group" aria-label="Background export format">
+                <div class="background-export-toggle" role="group" aria-label="Wallpaper export format">
                     <button type="button" class="background-export-btn active" data-export-format="png">PNG</button>
                     <button type="button" class="background-export-btn" data-export-format="webm">WEBM</button>
                     <button type="button" class="background-export-btn" data-export-format="mp4">MP4</button>
-                </div>
-            </div>
-            <div class="background-export-block background-external-variant-group" id="background-external-variant-group" hidden>
-                <span class="field-label">External version</span>
-                <div class="background-export-toggle background-external-variant-toggle" role="group" aria-label="External background version">
-                    <button type="button" class="background-export-btn background-external-variant-btn active" data-external-variant="margin">Margin</button>
-                    <button type="button" class="background-export-btn background-external-variant-btn" data-external-variant="full">No Margin</button>
-                    <button type="button" class="background-export-btn background-external-variant-btn" data-external-variant="gradient">Gradient only</button>
                 </div>
             </div>
             <div class="background-export-block background-external-preview-group" id="background-external-preview-group" hidden>
@@ -1115,7 +1203,7 @@
             </div>
         </div>
         <div class="background-preview-shell">
-            <canvas id="background-preview-canvas" class="background-preview-image" width="1280" height="720" aria-label="Background preview"></canvas>
+            <canvas id="background-preview-canvas" class="background-preview-image" width="1280" height="720" aria-label="Wallpaper preview"></canvas>
             <div class="background-meta">
                 <span>Cocoon</span>
                 <span id="background-meta-detail">1920×1080 PNG</span>

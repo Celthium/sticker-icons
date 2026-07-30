@@ -63,6 +63,10 @@ const BACKGROUND_EXTERNAL_VARIANT_LABELS = Object.freeze({
     full: 'No Margin',
     gradient: 'Gradient only'
 });
+const BACKGROUND_EXTERNAL_DOCK_POSITION_LABELS = Object.freeze({
+    top: 'Top',
+    bottom: 'Bottom'
+});
 const BACKGROUND_EXTERNAL_THEME_LABELS = Object.freeze({
     light: 'Light Theme',
     dark: 'Dark Theme'
@@ -85,6 +89,16 @@ const BACKGROUND_EXTERNAL_SVG_TEMPLATES = Object.freeze({
     dark: Object.freeze({
         margin: "<svg width=\"1240\" height=\"1080\" viewBox=\"0 0 1240 1080\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_2945_175)\">\n<rect width=\"1240\" height=\"1080\" fill=\"url(#paint0_linear_2945_175)\"/>\n<g filter=\"url(#filter0_di_2945_175)\">\n<rect x=\"20\" y=\"188\" width=\"1200\" height=\"872\" rx=\"40\" fill=\"url(#paint1_linear_2945_175)\"/>\n</g>\n</g>\n<defs>\n<filter id=\"filter0_di_2945_175\" x=\"8\" y=\"180\" width=\"1224\" height=\"896\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"4\"/>\n<feGaussianBlur stdDeviation=\"6\"/>\n<feComposite in2=\"hardAlpha\" operator=\"out\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0.105882 0 0 0 0 0.105882 0 0 0 0 0.105882 0 0 0 0.15 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_2945_175\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_2945_175\" result=\"shape\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"-8\"/>\n<feGaussianBlur stdDeviation=\"4\"/>\n<feComposite in2=\"hardAlpha\" operator=\"arithmetic\" k2=\"-1\" k3=\"1\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.075 0\"/>\n<feBlend mode=\"normal\" in2=\"shape\" result=\"effect2_innerShadow_2945_175\"/>\n</filter>\n<linearGradient id=\"paint0_linear_2945_175\" x1=\"620\" y1=\"0\" x2=\"620\" y2=\"1080\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#2A2A2A\"/>\n<stop offset=\"1\" stop-color=\"#1E1E1E\"/>\n</linearGradient>\n<linearGradient id=\"paint1_linear_2945_175\" x1=\"620\" y1=\"-483.43\" x2=\"620\" y2=\"1060\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#424242\"/>\n<stop offset=\"1\" stop-color=\"#282828\"/>\n</linearGradient>\n<clipPath id=\"clip0_2945_175\">\n<rect width=\"1240\" height=\"1080\" fill=\"white\"/>\n</clipPath>\n</defs>\n</svg>\n",
         full: "<svg width=\"1240\" height=\"1080\" viewBox=\"0 0 1240 1080\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_2945_204)\">\n<rect width=\"1240\" height=\"1080\" fill=\"url(#paint0_linear_2945_204)\"/>\n<g filter=\"url(#filter0_di_2945_204)\">\n<rect y=\"188\" width=\"1240\" height=\"872\" fill=\"url(#paint1_linear_2945_204)\"/>\n</g>\n</g>\n<defs>\n<filter id=\"filter0_di_2945_204\" x=\"-12\" y=\"180\" width=\"1264\" height=\"896\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"4\"/>\n<feGaussianBlur stdDeviation=\"6\"/>\n<feComposite in2=\"hardAlpha\" operator=\"out\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0.105882 0 0 0 0 0.105882 0 0 0 0 0.105882 0 0 0 0.15 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_2945_204\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_2945_204\" result=\"shape\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"-8\"/>\n<feGaussianBlur stdDeviation=\"4\"/>\n<feComposite in2=\"hardAlpha\" operator=\"arithmetic\" k2=\"-1\" k3=\"1\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.075 0\"/>\n<feBlend mode=\"normal\" in2=\"shape\" result=\"effect2_innerShadow_2945_204\"/>\n</filter>\n<linearGradient id=\"paint0_linear_2945_204\" x1=\"620\" y1=\"0\" x2=\"620\" y2=\"1080\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#2A2A2A\"/>\n<stop offset=\"1\" stop-color=\"#1E1E1E\"/>\n</linearGradient>\n<linearGradient id=\"paint1_linear_2945_204\" x1=\"620\" y1=\"-483.43\" x2=\"620\" y2=\"1060\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#424242\"/>\n<stop offset=\"1\" stop-color=\"#282828\"/>\n</linearGradient>\n<clipPath id=\"clip0_2945_204\">\n<rect width=\"1240\" height=\"1080\" fill=\"white\"/>\n</clipPath>\n</defs>\n</svg>\n"
+    })
+});
+const BACKGROUND_EXTERNAL_DOCK_BOTTOM_SVG_TEMPLATES = Object.freeze({
+    light: Object.freeze({
+        margin: "<svg width=\"1240\" height=\"1080\" viewBox=\"0 0 1240 1080\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_2949_226)\">\n<rect width=\"1240\" height=\"1080\" transform=\"matrix(1 0 0 -1 0 1080)\" fill=\"url(#paint0_linear_2949_226)\"/>\n<g filter=\"url(#filter0_di_2949_226)\">\n<rect x=\"20\" y=\"20\" width=\"1200\" height=\"872\" rx=\"40\" fill=\"url(#paint1_linear_2949_226)\"/>\n</g>\n</g>\n<defs>\n<filter id=\"filter0_di_2949_226\" x=\"8\" y=\"12\" width=\"1224\" height=\"896\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"4\"/>\n<feGaussianBlur stdDeviation=\"6\"/>\n<feComposite in2=\"hardAlpha\" operator=\"out\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_2949_226\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_2949_226\" result=\"shape\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"-4\"/>\n<feGaussianBlur stdDeviation=\"4\"/>\n<feComposite in2=\"hardAlpha\" operator=\"arithmetic\" k2=\"-1\" k3=\"1\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0\"/>\n<feBlend mode=\"normal\" in2=\"shape\" result=\"effect2_innerShadow_2949_226\"/>\n</filter>\n<linearGradient id=\"paint0_linear_2949_226\" x1=\"620\" y1=\"0\" x2=\"620\" y2=\"1080\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#EFEFF2\"/>\n<stop offset=\"1\" stop-color=\"#CFCFDB\"/>\n</linearGradient>\n<linearGradient id=\"paint1_linear_2949_226\" x1=\"620\" y1=\"-651.43\" x2=\"620\" y2=\"892\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#F8F8F8\"/>\n<stop offset=\"1\" stop-color=\"#E9EDF1\"/>\n</linearGradient>\n<clipPath id=\"clip0_2949_226\">\n<rect width=\"1240\" height=\"1080\" fill=\"white\" transform=\"matrix(1 0 0 -1 0 1080)\"/>\n</clipPath>\n</defs>\n</svg>\n",
+        full: "<svg width=\"1240\" height=\"1080\" viewBox=\"0 0 1240 1080\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_2949_229)\">\n<rect width=\"1240\" height=\"1080\" transform=\"matrix(1 0 0 -1 0 1080)\" fill=\"url(#paint0_linear_2949_229)\"/>\n<g filter=\"url(#filter0_di_2949_229)\">\n<rect y=\"20\" width=\"1240\" height=\"872\" fill=\"url(#paint1_linear_2949_229)\"/>\n</g>\n</g>\n<defs>\n<filter id=\"filter0_di_2949_229\" x=\"-12\" y=\"12\" width=\"1264\" height=\"896\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"4\"/>\n<feGaussianBlur stdDeviation=\"6\"/>\n<feComposite in2=\"hardAlpha\" operator=\"out\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_2949_229\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_2949_229\" result=\"shape\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"-4\"/>\n<feGaussianBlur stdDeviation=\"4\"/>\n<feComposite in2=\"hardAlpha\" operator=\"arithmetic\" k2=\"-1\" k3=\"1\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0\"/>\n<feBlend mode=\"normal\" in2=\"shape\" result=\"effect2_innerShadow_2949_229\"/>\n</filter>\n<linearGradient id=\"paint0_linear_2949_229\" x1=\"620\" y1=\"0\" x2=\"620\" y2=\"1080\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#EFEFF2\"/>\n<stop offset=\"1\" stop-color=\"#CFCFDB\"/>\n</linearGradient>\n<linearGradient id=\"paint1_linear_2949_229\" x1=\"620\" y1=\"-651.43\" x2=\"620\" y2=\"892\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#F8F8F8\"/>\n<stop offset=\"1\" stop-color=\"#E9EDF1\"/>\n</linearGradient>\n<clipPath id=\"clip0_2949_229\">\n<rect width=\"1240\" height=\"1080\" fill=\"white\" transform=\"matrix(1 0 0 -1 0 1080)\"/>\n</clipPath>\n</defs>\n</svg>\n"
+    }),
+    dark: Object.freeze({
+        margin: "<svg width=\"1240\" height=\"1080\" viewBox=\"0 0 1240 1080\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_2949_226)\">\n<rect width=\"1240\" height=\"1080\" transform=\"matrix(1 0 0 -1 0 1080)\" fill=\"url(#paint0_linear_2949_226)\"/>\n<g filter=\"url(#filter0_di_2949_226)\">\n<rect x=\"20\" y=\"20\" width=\"1200\" height=\"872\" rx=\"40\" fill=\"url(#paint1_linear_2949_226)\"/>\n</g>\n</g>\n<defs>\n<filter id=\"filter0_di_2949_226\" x=\"8\" y=\"12\" width=\"1224\" height=\"896\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"4\"/>\n<feGaussianBlur stdDeviation=\"6\"/>\n<feComposite in2=\"hardAlpha\" operator=\"out\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_2949_226\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_2949_226\" result=\"shape\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"-4\"/>\n<feGaussianBlur stdDeviation=\"4\"/>\n<feComposite in2=\"hardAlpha\" operator=\"arithmetic\" k2=\"-1\" k3=\"1\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0\"/>\n<feBlend mode=\"normal\" in2=\"shape\" result=\"effect2_innerShadow_2949_226\"/>\n</filter>\n<linearGradient id=\"paint0_linear_2949_226\" x1=\"620\" y1=\"0\" x2=\"620\" y2=\"1080\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#EFEFF2\"/>\n<stop offset=\"1\" stop-color=\"#CFCFDB\"/>\n</linearGradient>\n<linearGradient id=\"paint1_linear_2949_226\" x1=\"620\" y1=\"-651.43\" x2=\"620\" y2=\"892\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#F8F8F8\"/>\n<stop offset=\"1\" stop-color=\"#E9EDF1\"/>\n</linearGradient>\n<clipPath id=\"clip0_2949_226\">\n<rect width=\"1240\" height=\"1080\" fill=\"white\" transform=\"matrix(1 0 0 -1 0 1080)\"/>\n</clipPath>\n</defs>\n</svg>\n",
+        full: "<svg width=\"1240\" height=\"1080\" viewBox=\"0 0 1240 1080\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g clip-path=\"url(#clip0_2949_229)\">\n<rect width=\"1240\" height=\"1080\" transform=\"matrix(1 0 0 -1 0 1080)\" fill=\"url(#paint0_linear_2949_229)\"/>\n<g filter=\"url(#filter0_di_2949_229)\">\n<rect y=\"20\" width=\"1240\" height=\"872\" fill=\"url(#paint1_linear_2949_229)\"/>\n</g>\n</g>\n<defs>\n<filter id=\"filter0_di_2949_229\" x=\"-12\" y=\"12\" width=\"1264\" height=\"896\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"4\"/>\n<feGaussianBlur stdDeviation=\"6\"/>\n<feComposite in2=\"hardAlpha\" operator=\"out\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.3 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_2949_229\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_2949_229\" result=\"shape\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"-4\"/>\n<feGaussianBlur stdDeviation=\"4\"/>\n<feComposite in2=\"hardAlpha\" operator=\"arithmetic\" k2=\"-1\" k3=\"1\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0\"/>\n<feBlend mode=\"normal\" in2=\"shape\" result=\"effect2_innerShadow_2949_229\"/>\n</filter>\n<linearGradient id=\"paint0_linear_2949_229\" x1=\"620\" y1=\"0\" x2=\"620\" y2=\"1080\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#EFEFF2\"/>\n<stop offset=\"1\" stop-color=\"#CFCFDB\"/>\n</linearGradient>\n<linearGradient id=\"paint1_linear_2949_229\" x1=\"620\" y1=\"-651.43\" x2=\"620\" y2=\"892\" gradientUnits=\"userSpaceOnUse\">\n<stop stop-color=\"#F8F8F8\"/>\n<stop offset=\"1\" stop-color=\"#E9EDF1\"/>\n</linearGradient>\n<clipPath id=\"clip0_2949_229\">\n<rect width=\"1240\" height=\"1080\" fill=\"white\" transform=\"matrix(1 0 0 -1 0 1080)\"/>\n</clipPath>\n</defs>\n</svg>\n"
     })
 });
 const BACKGROUND_WEBM_SETTINGS = Object.freeze({
@@ -191,8 +205,10 @@ const state = {
     backgroundScreen: 'main',
     backgroundExternalTheme: 'light',
     backgroundExternalVariant: 'margin',
+    backgroundExternalDockPosition: 'top',
     backgroundExternalPanelCustomTop: '#F8F8F8',
     backgroundExternalPanelCustomBottom: '#E9EDF1',
+    backgroundExternalPanelOpacity: 100,
     backgroundExternalShowFolders: false,
     temporaryScale: {
         active: false,
@@ -250,14 +266,20 @@ const els = {
     backgroundExternalThemeBtns: document.querySelectorAll('.background-external-theme-btn[data-external-theme]'),
     backgroundExternalVariantGroup: document.getElementById('background-external-variant-group'),
     backgroundExternalVariantBtns: document.querySelectorAll('.background-external-variant-btn[data-external-variant]'),
+    backgroundExternalDockGroup: document.getElementById('background-external-dock-group'),
+    backgroundExternalDockBtns: document.querySelectorAll('.background-external-dock-btn[data-external-dock-position]'),
     backgroundExternalPreviewGroup: document.getElementById('background-external-preview-group'),
     backgroundExternalShowFolders: document.getElementById('background-external-show-folders'),
+    backgroundExternalSettingsPanel: document.getElementById('background-external-settings-panel'),
     backgroundExternalPanelGroup: document.getElementById('background-external-panel-group'),
     backgroundExternalPanelCustom: document.getElementById('background-external-panel-custom'),
     backgroundExternalPanelTop: document.getElementById('background-external-panel-top'),
     backgroundExternalPanelBottom: document.getElementById('background-external-panel-bottom'),
     backgroundExternalPanelTopValue: document.getElementById('background-external-panel-top-value'),
     backgroundExternalPanelBottomValue: document.getElementById('background-external-panel-bottom-value'),
+    backgroundExternalPanelOpacityGroup: document.getElementById('background-external-panel-opacity-group'),
+    backgroundExternalPanelOpacity: document.getElementById('background-external-panel-opacity'),
+    backgroundExternalPanelOpacityValue: document.getElementById('background-external-panel-opacity-value'),
     backgroundExternalPanelResetBtn: document.getElementById('background-external-panel-reset-btn'),
     backgroundExternalPanelMatchBtn: document.getElementById('background-external-panel-match-btn'),
     backgroundExportHelp: document.getElementById('background-export-help'),
@@ -497,6 +519,14 @@ function getBackgroundExternalVariantLabel() {
     return BACKGROUND_EXTERNAL_VARIANT_LABELS[getBackgroundExternalVariant()] || BACKGROUND_EXTERNAL_VARIANT_LABELS.margin;
 }
 
+function getBackgroundExternalDockPosition() {
+    return state.backgroundExternalDockPosition === 'bottom' ? 'bottom' : 'top';
+}
+
+function getBackgroundExternalDockPositionLabel() {
+    return BACKGROUND_EXTERNAL_DOCK_POSITION_LABELS[getBackgroundExternalDockPosition()] || BACKGROUND_EXTERNAL_DOCK_POSITION_LABELS.top;
+}
+
 function getColorLuminance(hex) {
     const rgb = hexToRgb(hex);
     if (!rgb) return 1;
@@ -623,8 +653,28 @@ function setExternalPanelColors(top, bottom, { refresh = true } = {}) {
     }
 }
 
+function getExternalPanelOpacity() {
+    return Math.max(45, Math.min(100, Number(state.backgroundExternalPanelOpacity) || 100));
+}
+
+function setExternalPanelOpacity(value, { refresh = true } = {}) {
+    state.backgroundExternalPanelOpacity = getClampedPanelOpacity(value);
+    state.assets.backgroundExternalPreviewKey = '';
+
+    if (refresh) {
+        syncBackgroundExportControls();
+        updateBackgroundPreview();
+        updateActionBar();
+    }
+}
+
+function getClampedPanelOpacity(value) {
+    return Math.max(45, Math.min(100, Math.round(Number(value) || 100)));
+}
+
 function resetExternalPanelColorsToThemeDefault({ refresh = true } = {}) {
     const colors = getDefaultExternalPanelColors();
+    state.backgroundExternalPanelOpacity = 100;
     setExternalPanelColors(colors.top, colors.bottom, { refresh });
 }
 
@@ -765,6 +815,18 @@ function mixHexColors(baseHex, targetHex, amount) {
     });
 }
 
+function continueExternalBackgroundBottom(bottomHex) {
+    const luminance = getRelativeLuminance(bottomHex);
+    const darkenAmount = luminance > 0.55 ? 0.1 : luminance > 0.32 ? 0.08 : 0.05;
+    return mixHexColors(bottomHex, '#000000', darkenAmount);
+}
+
+function getExternalContinuationMidpoint(bottomHex) {
+    const luminance = getRelativeLuminance(bottomHex);
+    const highlightAmount = luminance > 0.55 ? 0.09 : luminance > 0.32 ? 0.12 : 0.16;
+    return mixHexColors(bottomHex, '#FFFFFF', highlightAmount);
+}
+
 function isBackgroundDefaultPalette() {
     const palette = getPalette();
     return normalizeHex(palette.top) === normalizeHex(BACKGROUND_DEFAULT_PRESET.top)
@@ -782,24 +844,33 @@ function getExternalPanelLiftAmount(baseHex, isBottom = false) {
 
 function getExternalBackgroundColors() {
     const palette = getPalette();
-    const backgroundTop = isExternalLightPreset()
+    const usesExternalLightPreset = isExternalLightPreset();
+    const usesExternalDarkPreset = isExternalDarkPreset();
+    const backgroundTop = usesExternalLightPreset
         ? BACKGROUND_DEFAULT_PRESET.top
-        : isExternalDarkPreset()
+        : usesExternalDarkPreset
             ? BACKGROUND_DARK_PRESET.top
-            : palette.top;
-    const backgroundBottom = isExternalLightPreset()
-        ? BACKGROUND_DEFAULT_PRESET.bottom
-        : isExternalDarkPreset()
-            ? BACKGROUND_DARK_PRESET.bottom
             : palette.bottom;
+    const backgroundMid = usesExternalLightPreset
+        ? mixHexColors(BACKGROUND_DEFAULT_PRESET.top, BACKGROUND_DEFAULT_PRESET.bottom, 0.45)
+        : usesExternalDarkPreset
+            ? mixHexColors(BACKGROUND_DARK_PRESET.top, BACKGROUND_DARK_PRESET.bottom, 0.45)
+            : getExternalContinuationMidpoint(palette.bottom);
+    const backgroundBottom = usesExternalLightPreset
+        ? BACKGROUND_DEFAULT_PRESET.bottom
+        : usesExternalDarkPreset
+            ? BACKGROUND_DARK_PRESET.bottom
+            : continueExternalBackgroundBottom(palette.bottom);
     const defaultPanel = getDefaultExternalPanelColors();
 
     return {
         backgroundTop,
+        backgroundMid,
         backgroundBottom,
         blockTop: normalizeHex(state.backgroundExternalPanelCustomTop) || defaultPanel.top,
         blockBottom: normalizeHex(state.backgroundExternalPanelCustomBottom) || defaultPanel.bottom,
-        isDark: isExternalDarkPreset()
+        blockOpacity: getExternalPanelOpacity() / 100,
+        isDark: usesExternalDarkPreset
     };
 }
 
@@ -807,22 +878,48 @@ function getExternalBackgroundSvgKey() {
     const colors = getExternalBackgroundColors();
     return [
         colors.backgroundTop,
+        colors.backgroundMid,
         colors.backgroundBottom,
         colors.blockTop,
         colors.blockBottom,
         colors.isDark ? 'dark' : 'light',
+        getBackgroundExternalDockPosition(),
         state.backgroundExternalPanelCustomTop,
         state.backgroundExternalPanelCustomBottom,
+        getExternalPanelOpacity(),
         getBackgroundExternalVariant()
     ].join('|');
 }
 
 function getExternalGradientOnlySvg(colors) {
-    return `<svg width="1240" height="1080" viewBox="0 0 1240 1080" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="1240" height="1080" fill="url(#external_gradient_only)"/><defs><linearGradient id="external_gradient_only" x1="620" y1="0" x2="620" y2="1080" gradientUnits="userSpaceOnUse"><stop stop-color="${colors.backgroundTop}"/><stop offset="1" stop-color="${colors.backgroundBottom}"/></linearGradient></defs></svg>`;
+    return `<svg width="1240" height="1080" viewBox="0 0 1240 1080" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="1240" height="1080" fill="url(#external_gradient_only)"/><defs><linearGradient id="external_gradient_only" x1="620" y1="0" x2="620" y2="1080" gradientUnits="userSpaceOnUse"><stop stop-color="${colors.backgroundTop}"/><stop offset="0.46" stop-color="${colors.backgroundMid || colors.backgroundTop}"/><stop offset="1" stop-color="${colors.backgroundBottom}"/></linearGradient></defs></svg>`;
+}
+
+function enrichExternalBackgroundGradientSvg(svgText, colors) {
+    if (!colors.backgroundMid) return svgText;
+
+    return svgText.replace(
+        /(<linearGradient id="paint0_linear_[^"]+"[\s\S]*?<stop stop-color="[^"]+"\/>)(\s*<stop offset="1" stop-color="[^"]+"\/>)/,
+        `$1\n<stop offset="0.46" stop-color="${colors.backgroundMid}"/>$2`
+    );
+}
+
+function adjustExternalPanelLayoutSvg(svgText) {
+    return svgText;
+}
+
+function applyExternalPanelOpacitySvg(svgText, opacity) {
+    const alpha = Math.max(0.45, Math.min(1, Number(opacity) || 1));
+    if (alpha >= 0.999) return svgText;
+
+    return svgText.replace(
+        /(fill="url\(#paint1_linear_[^"]+\)")/,
+        `$1 fill-opacity="${alpha.toFixed(2)}"`
+    );
 }
 
 function recolorExternalBackgroundSvg(svgText, colors) {
-    return svgText
+    return applyExternalPanelOpacitySvg(enrichExternalBackgroundGradientSvg(adjustExternalPanelLayoutSvg(svgText), colors), colors.blockOpacity)
         .replaceAll('#EFEFF2', colors.backgroundTop)
         .replaceAll('#EFEFF3', colors.backgroundTop)
         .replaceAll('#CFCFDB', colors.backgroundBottom)
@@ -844,7 +941,10 @@ function getColoredExternalBackgroundSvg() {
     }
 
     const theme = colors.isDark ? 'dark' : 'light';
-    const themeTemplates = BACKGROUND_EXTERNAL_SVG_TEMPLATES[theme] || BACKGROUND_EXTERNAL_SVG_TEMPLATES.light;
+    const sourceTemplates = getBackgroundExternalDockPosition() === 'bottom'
+        ? BACKGROUND_EXTERNAL_DOCK_BOTTOM_SVG_TEMPLATES
+        : BACKGROUND_EXTERNAL_SVG_TEMPLATES;
+    const themeTemplates = sourceTemplates[theme] || sourceTemplates.light || BACKGROUND_EXTERNAL_SVG_TEMPLATES.light;
     const template = themeTemplates[variant] || themeTemplates.margin;
     return recolorExternalBackgroundSvg(template, colors);
 }
@@ -880,15 +980,17 @@ function renderExternalBackgroundFallbackFrame(ctx, width, height) {
 
     const backgroundGradient = ctx.createLinearGradient(0, 0, 0, height);
     backgroundGradient.addColorStop(0, colors.backgroundTop);
+    backgroundGradient.addColorStop(0.46, colors.backgroundMid || colors.backgroundTop);
     backgroundGradient.addColorStop(1, colors.backgroundBottom);
     ctx.fillStyle = backgroundGradient;
     ctx.fillRect(0, 0, width, height);
 
     if (variant === 'gradient') return;
 
+    const panelY = getBackgroundExternalDockPosition() === 'bottom' ? 20 : 188;
     const rect = variant === 'full'
-        ? { x: 0, y: 188, width: 1240, height: 872, radius: 0 }
-        : { x: 20, y: 188, width: 1200, height: 872, radius: 40 };
+        ? { x: 0, y: panelY, width: 1240, height: 872, radius: 0 }
+        : { x: 20, y: panelY, width: 1200, height: 872, radius: 40 };
 
     const x = rect.x * scaleX;
     const y = rect.y * scaleY;
@@ -906,6 +1008,7 @@ function renderExternalBackgroundFallbackFrame(ctx, width, height) {
     const blockGradient = ctx.createLinearGradient(0, y, 0, y + rectHeight);
     blockGradient.addColorStop(0, blockTop);
     blockGradient.addColorStop(1, blockBottom);
+    ctx.globalAlpha = colors.blockOpacity ?? 1;
     ctx.fillStyle = blockGradient;
     ctx.fill();
     ctx.restore();
@@ -937,12 +1040,19 @@ function drawExternalPreviewFolders(ctx, width, height) {
 
     const scale = Math.min(width / BACKGROUND_EXTERNAL_SIZE.width, height / BACKGROUND_EXTERNAL_SIZE.height);
     const folderSize = 172 * scale;
-    const placements = [
-        { x: 0.27, y: 0.51, size: 0.95, rot: -7, alpha: 0.96 },
-        { x: 0.50, y: 0.47, size: 1.08, rot: 4, alpha: 1 },
-        { x: 0.72, y: 0.55, size: 0.98, rot: -3, alpha: 0.98 },
-        { x: 0.59, y: 0.74, size: 0.78, rot: 8, alpha: 0.9 }
-    ];
+    const placements = getBackgroundExternalDockPosition() === 'bottom'
+        ? [
+            { x: 0.27, y: 0.35, size: 0.95, rot: -7, alpha: 0.96 },
+            { x: 0.50, y: 0.31, size: 1.08, rot: 4, alpha: 1 },
+            { x: 0.72, y: 0.39, size: 0.98, rot: -3, alpha: 0.98 },
+            { x: 0.59, y: 0.58, size: 0.78, rot: 8, alpha: 0.9 }
+        ]
+        : [
+            { x: 0.27, y: 0.51, size: 0.95, rot: -7, alpha: 0.96 },
+            { x: 0.50, y: 0.47, size: 1.08, rot: 4, alpha: 1 },
+            { x: 0.72, y: 0.55, size: 0.98, rot: -3, alpha: 0.98 },
+            { x: 0.59, y: 0.74, size: 0.78, rot: 8, alpha: 0.9 }
+        ];
 
     placements.forEach(item => {
         const size = folderSize * item.size;
@@ -1231,7 +1341,7 @@ async function updateBackgroundPreview() {
         drawBackgroundPreviewFrame(0);
         syncBackgroundPreviewPlayback();
     } catch (error) {
-        console.warn('Background preview could not be rendered.', error);
+        console.warn('Wallpaper preview could not be rendered.', error);
     }
 }
 
@@ -1250,6 +1360,17 @@ function isBackgroundVideoSupported() {
         && typeof HTMLCanvasElement !== 'undefined'
         && 'captureStream' in HTMLCanvasElement.prototype
         && Boolean(getBackgroundVideoMimeType());
+}
+
+
+function setUnavailableControlGroup(group, unavailable) {
+    if (!group) return;
+
+    group.classList.toggle('is-disabled', unavailable);
+    group.setAttribute('aria-disabled', String(unavailable));
+    group.querySelectorAll('button, input, select, textarea').forEach(control => {
+        control.disabled = unavailable;
+    });
 }
 
 function syncBackgroundExportControls() {
@@ -1271,7 +1392,7 @@ function syncBackgroundExportControls() {
             button.setAttribute('aria-pressed', String(isActive));
             button.disabled = isExternal ? isVideoButton : isWebm && !webmSupported;
             button.title = isExternal && isVideoButton
-                ? 'External background export is PNG only.'
+                ? 'External wallpaper export is PNG only.'
                 : isWebm && !webmSupported
                     ? 'WEBM export is not supported in this browser.'
                     : '';
@@ -1280,7 +1401,9 @@ function syncBackgroundExportControls() {
 
     if (els.backgroundExportHelp) {
         if (isExternal) {
-            els.backgroundExportHelp.textContent = `External PNG · ${getBackgroundExternalVariantLabel()}`;
+            els.backgroundExportHelp.textContent = getBackgroundExternalVariant() === 'gradient'
+                ? `External PNG · ${getBackgroundExternalVariantLabel()}`
+                : `External PNG · ${getBackgroundExternalVariantLabel()} · ${getBackgroundExternalDockPositionLabel()}`;
         } else if (format === 'mp4') {
             els.backgroundExportHelp.textContent = `MP4 Video · ${getBackgroundAnimationLabel()} · ${getBackgroundVideoDurationSeconds()}s. (Uses ffmpeg.wasm. It is slower, but it is the most compatible option for Cocoon.)`;
         } else if (format === 'webm') {
@@ -1307,8 +1430,18 @@ function syncBackgroundExportControls() {
         backgroundPreviewShell.classList.toggle('external-preview-compact', isExternal);
     }
 
+    if (els.backgroundExternalSettingsPanel) {
+        els.backgroundExternalSettingsPanel.hidden = !isExternal;
+    }
+
     if (els.backgroundExternalVariantGroup) {
         els.backgroundExternalVariantGroup.hidden = !isExternal;
+    }
+
+    const isGradientOnlyExternal = isExternal && getBackgroundExternalVariant() === 'gradient';
+    if (els.backgroundExternalDockGroup) {
+        els.backgroundExternalDockGroup.hidden = !isExternal;
+        setUnavailableControlGroup(els.backgroundExternalDockGroup, isGradientOnlyExternal);
     }
 
     if (els.backgroundExternalPreviewGroup) {
@@ -1318,12 +1451,27 @@ function syncBackgroundExportControls() {
         els.backgroundExternalShowFolders.checked = Boolean(state.backgroundExternalShowFolders);
     }
 
-    const isExternalPanelConfigVisible = isExternal && getBackgroundExternalVariant() !== 'gradient';
+    const isExternalPanelConfigVisible = isExternal;
     if (els.backgroundExternalPanelGroup) {
         els.backgroundExternalPanelGroup.hidden = !isExternalPanelConfigVisible;
+        setUnavailableControlGroup(els.backgroundExternalPanelGroup, isGradientOnlyExternal);
     }
     if (els.backgroundExternalPanelCustom) {
         els.backgroundExternalPanelCustom.hidden = !isExternalPanelConfigVisible;
+    }
+    if (els.backgroundExternalPanelOpacityGroup) {
+        els.backgroundExternalPanelOpacityGroup.hidden = !isExternalPanelConfigVisible;
+        setUnavailableControlGroup(els.backgroundExternalPanelOpacityGroup, isGradientOnlyExternal);
+    }
+    if (els.backgroundExternalPanelOpacity) {
+        els.backgroundExternalPanelOpacity.hidden = !isExternalPanelConfigVisible;
+        els.backgroundExternalPanelOpacity.value = getExternalPanelOpacity();
+    }
+    if (els.backgroundExternalPanelOpacity?.closest('.background-external-panel-opacity-row')) {
+        els.backgroundExternalPanelOpacity.closest('.background-external-panel-opacity-row').hidden = !isExternalPanelConfigVisible;
+    }
+    if (els.backgroundExternalPanelOpacityValue) {
+        els.backgroundExternalPanelOpacityValue.textContent = `${getExternalPanelOpacity()}%`;
     }
     if (els.backgroundExternalPanelTop) {
         els.backgroundExternalPanelTop.value = normalizeHex(state.backgroundExternalPanelCustomTop) || '#F8F8F8';
@@ -1362,9 +1510,19 @@ function syncBackgroundExportControls() {
         });
     }
 
+    if (els.backgroundExternalDockBtns?.length) {
+        els.backgroundExternalDockBtns.forEach(button => {
+            const isActive = button.dataset.externalDockPosition === getBackgroundExternalDockPosition();
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+        });
+    }
+
     if (els.backgroundMetaDetail) {
         if (isExternal) {
-            els.backgroundMetaDetail.textContent = `${BACKGROUND_EXTERNAL_SIZE.width}×${BACKGROUND_EXTERNAL_SIZE.height} PNG · ${getBackgroundExternalVariantLabel()}`;
+            els.backgroundMetaDetail.textContent = getBackgroundExternalVariant() === 'gradient'
+                ? `${BACKGROUND_EXTERNAL_SIZE.width}×${BACKGROUND_EXTERNAL_SIZE.height} PNG · ${getBackgroundExternalVariantLabel()}`
+                : `${BACKGROUND_EXTERNAL_SIZE.width}×${BACKGROUND_EXTERNAL_SIZE.height} PNG · ${getBackgroundExternalVariantLabel()} · ${getBackgroundExternalDockPositionLabel()}`;
         } else if (format === 'mp4') {
             els.backgroundMetaDetail.textContent = `1920×1080 MP4 · ${getBackgroundAnimationLabel()} · ${getBackgroundVideoDurationSeconds()}s`;
         } else if (format === 'webm') {
@@ -1936,7 +2094,7 @@ function updateModeControls() {
             adjustments: 'Logo Adjustments'
         },
         background: {
-            appearance: 'Background Colors',
+            appearance: 'Wallpaper Colors',
             adjustments: 'Background Adjustments'
         }
     };
@@ -3088,6 +3246,7 @@ function drawDiagonalColumnFlowVariableBackgroundGrid(ctx, width, height, progre
     const periodOffsetX = -241;
     const periodOffsetY = 388;
     const speedCycleRange = 7;
+    const wrapOffsets = [-1, 0, 1];
 
     stripes.forEach((stripeTiles, stripeIndex) => {
         const stripeOrder = stripeIndex - minStripeIndex;
@@ -3110,8 +3269,13 @@ function drawDiagonalColumnFlowVariableBackgroundGrid(ctx, width, height, progre
         const yOffset = periodOffsetY * moveProgress;
         const opacity = 1 + 0.035 * Math.sin(moveProgress * Math.PI);
 
-        stripeTiles.forEach(tile => {
-            drawAnimatedBackgroundTile(ctx, tile.x + xOffset, tile.y + yOffset, { opacity });
+        wrapOffsets.forEach(wrapIndex => {
+            const wrapX = xOffset + periodOffsetX * wrapIndex;
+            const wrapY = yOffset + periodOffsetY * wrapIndex;
+
+            stripeTiles.forEach(tile => {
+                drawAnimatedBackgroundTile(ctx, tile.x + wrapX, tile.y + wrapY, { opacity });
+            });
         });
     });
 }
@@ -3707,6 +3871,17 @@ function bindEvents() {
         });
     });
 
+    els.backgroundExternalDockBtns?.forEach(button => {
+        button.addEventListener('click', () => {
+            state.backgroundExternalDockPosition = button.dataset.externalDockPosition === 'bottom' ? 'bottom' : 'top';
+            state.assets.backgroundExternalPreviewKey = '';
+            syncExternalPreviewFolderImage();
+            syncBackgroundExportControls();
+            updateBackgroundPreview();
+            updateActionBar();
+        });
+    });
+
     els.backgroundExternalShowFolders?.addEventListener('change', () => {
         state.backgroundExternalShowFolders = Boolean(els.backgroundExternalShowFolders.checked);
         syncExternalPreviewFolderImage();
@@ -3720,6 +3895,13 @@ function bindEvents() {
 
     els.backgroundExternalPanelMatchBtn?.addEventListener('click', () => {
         matchExternalPanelColorsToBackground();
+    });
+
+    els.backgroundExternalPanelOpacity?.addEventListener('input', () => {
+        setExternalPanelOpacity(els.backgroundExternalPanelOpacity.value, { refresh: false });
+        syncBackgroundExportControls();
+        updateBackgroundPreview();
+        updateActionBar();
     });
 
     [
