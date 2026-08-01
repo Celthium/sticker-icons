@@ -33,6 +33,11 @@ const viewData = catalogData.viewData || Object.freeze(Object.fromEntries(
 const iconsDatabase = catalogData.iconsDatabase || [];
 window.viewData = viewData;
 
+// Tilted folders keep their full scale; only the SVG drop shadow is softened
+function getFolderTiltShadowScale() {
+    return 1;
+}
+
 // SVG templates for generated backgrounds. Gradients are recolored by replacing COLOR_TOP / COLOR_BOTTOM
 // Folders / Pods SVG
 const svgTemplates = {
@@ -199,6 +204,7 @@ const state = {
     },
     generatorStyle: DEFAULTS.style,
     folderPreviewPalette: { ...DEFAULTS.colors },
+    folderExportSize: 1024,
     backgroundExportFormat: 'png',
     backgroundVideoDurationMs: BACKGROUND_WEBM_SETTINGS.durationMs,
     backgroundAnimation: 'drift',
@@ -224,6 +230,8 @@ const els = {
     grid: document.getElementById('icon-grid'),
     countDisplay: document.getElementById('selection-count'),
     downloadBtn: document.getElementById('download-btn'),
+    folderExportSizeControl: document.getElementById('folder-export-size-control'),
+    folderExportSizeBtns: document.querySelectorAll('.folder-export-size-btn[data-export-size]'),
     tabBtns: document.querySelectorAll('.tab-btn[data-tab]'),
     mainTabBtns: document.querySelectorAll('.main-tab-btn'),
     dashboard: document.querySelector('.dashboard'),
@@ -315,6 +323,23 @@ function setDownloadButtonLoading(label) {
 function clearDownloadButtonLoading() {
     if (!els.downloadBtn) return;
     els.downloadBtn.classList.remove('is-loading');
+}
+
+function getFolderExportSize() {
+    return Number(state.folderExportSize) === 512 ? 512 : 1024;
+}
+
+function syncFolderExportSizeControls() {
+    if (!els.folderExportSizeControl) return;
+
+    const isFolderMode = state.mode === 'generator';
+    els.folderExportSizeControl.hidden = !isFolderMode;
+
+    els.folderExportSizeBtns?.forEach(button => {
+        const isActive = Number(button.dataset.exportSize) === getFolderExportSize();
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+    });
 }
 
 // --- SMALL UTILITIES ---
@@ -1751,10 +1776,32 @@ function getAverageColors(imgSrc) {
     });
 }
 
+function softenFolderDropShadow(doc, style) {
+    if (style === 'pods' || style === 'icon_only') return;
+
+    doc.querySelectorAll('filter[id*="_d_"]').forEach(filter => {
+        filter.querySelectorAll('feOffset').forEach(offset => {
+            if (offset.getAttribute('dy') === '6') offset.setAttribute('dy', '3.5');
+        });
+
+        filter.querySelectorAll('feGaussianBlur').forEach(blur => {
+            if (blur.getAttribute('stdDeviation') === '6') blur.setAttribute('stdDeviation', '3.75');
+        });
+
+        filter.querySelectorAll('feColorMatrix').forEach(matrix => {
+            const values = matrix.getAttribute('values');
+            if (!values) return;
+            matrix.setAttribute('values', values.replace(/ 0\.25 0$/, ' 0.18 0'));
+        });
+    });
+}
+
 // Build a recolored folder/pod background SVG data URL for the requested style
 function getColoredFolderDataUrl(style, palette) {
     const template = style === 'pods' ? svgTemplates.pods : svgTemplates[style];
     const doc = new DOMParser().parseFromString(template, 'image/svg+xml');
+
+    softenFolderDropShadow(doc, style);
 
     doc.querySelectorAll('linearGradient').forEach(gradient => {
         const id = gradient.getAttribute('id');
@@ -1933,13 +1980,15 @@ function updateActionBar() {
                     ? 'Download WEBM'
                     : 'Download PNG';
         syncBackgroundExportControls();
+        syncFolderExportSizeControls();
         return;
     }
 
     const count = state.selectedIcons.size;
     els.countDisplay.textContent = `${count} icon${count > 1 ? 's' : ''} selected`;
     els.downloadBtn.disabled = count === 0;
-    els.downloadBtn.textContent = 'Download ZIP';
+    els.downloadBtn.textContent = count === 1 ? 'Download PNG' : 'Download ZIP';
+    syncFolderExportSizeControls();
 }
 
 // Highlight the active category tab
@@ -2044,7 +2093,9 @@ function syncTemporaryIconScale() {
 
 // Apply the selected folder angle to the preview CSS variable
 function applyFolderTilt() {
-    setCssVar('--folder-rot', `${els.folderTilt.value}deg`);
+    const angle = Number(els.folderTilt.value) || 0;
+    setCssVar('--folder-rot', `${angle}deg`);
+    setCssVar('--folder-tilt-scale', getFolderTiltShadowScale(angle));
     syncChoiceButtons();
 }
 
@@ -3647,6 +3698,95 @@ async function exportBackgroundImage() {
     }
 }
 
+async function buildIconExportFile(icon, { style, scale, exportSize }) {
+    const targetSrc = getExportIconSrc(icon);
+    const safeName = getSafeFileName(icon.displayName);
+    const isLogoExport = icon.tab === 'logos';
+    const isDockExport = icon.tab === 'dock';
+
+    if (!isLogoExport && (state.missingAssets.has(targetSrc) || icon.isMissing)) {
+        throw new Error('asset is marked as missing');
+    }
+
+    if (isLogoExport) {
+        state.missingAssets.delete(targetSrc);
+        icon.isMissing = false;
+
+        return {
+            filename: icon.filename || `${safeName}_Logo.png`,
+            blob: await logoToBlob(targetSrc, icon.displayName)
+        };
+    }
+
+    if (isDockExport) {
+        const iconImg = await loadImage(targetSrc);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = 256;
+        canvas.height = 256;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(iconImg, 0, 0, 256, 256);
+
+        return {
+            filename: icon.filename || `${safeName}_Dock.png`,
+            blob: await canvasToBlob(canvas)
+        };
+    }
+
+    const effectiveStyle = getEffectiveStyleForIcon(icon, style);
+
+    if (effectiveStyle === 'icon_only') {
+        return {
+            filename: icon.filename || `${safeName}.png`,
+            blob: await sourceToBlob(targetSrc, icon.displayName)
+        };
+    }
+
+    const iconImg = await loadImage(targetSrc);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = exportSize;
+    const center = size / 2;
+
+    canvas.width = size;
+    canvas.height = size;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const effectiveFolderAngleDeg = effectiveStyle === 'pods'
+        ? 0
+        : Number(els.folderTilt.value) || 0;
+    const effectiveFolderAngle = effectiveFolderAngleDeg * Math.PI / 180;
+    const folderTiltShadowScale = getFolderTiltShadowScale(effectiveFolderAngleDeg);
+
+    ctx.translate(center, center);
+    ctx.rotate(effectiveFolderAngle);
+    ctx.scale(folderTiltShadowScale, folderTiltShadowScale);
+
+    const background = await getFolderBackgroundImage(icon, style);
+    if (background) ctx.drawImage(background, -center, -center, size, size);
+
+    const maxSize = size * scale;
+    const { width: sourceWidth, height: sourceHeight } = getImageDimensions(iconImg, 1024, 1024);
+    const ratio = Math.min(maxSize / sourceWidth, maxSize / sourceHeight);
+    const width = sourceWidth * ratio;
+    const height = sourceHeight * ratio;
+
+    ctx.translate(
+        size * (Number(els.xSlider.value) / 100),
+        size * (Number(els.ySlider.value) / 100)
+    );
+    ctx.rotate(Number(els.rotSlider.value) * Math.PI / 180);
+    ctx.drawImage(iconImg, -width / 2, -height / 2, width, height);
+
+    return {
+        filename: icon.filename || `${safeName}${getExportSuffix(effectiveStyle)}.png`,
+        blob: await canvasToBlob(canvas)
+    };
+}
+
 // Compose selected icons on canvas, add them to a ZIP, and trigger download
 async function exportSelectedIcons() {
     if (state.mode === 'background') {
@@ -3657,7 +3797,7 @@ async function exportSelectedIcons() {
     const selected = Array.from(state.selectedIcons);
     if (!selected.length) return;
 
-    if (typeof JSZip === 'undefined' || typeof saveAs === 'undefined') {
+    if (typeof saveAs === 'undefined' || (selected.length > 1 && typeof JSZip === 'undefined')) {
         alert('Export libraries are still loading or unavailable. If you are opening this file offline, check that JSZip and FileSaver can load from the CDN.');
         return;
     }
@@ -3666,21 +3806,19 @@ async function exportSelectedIcons() {
     els.downloadBtn.textContent = 'Preparing...';
 
     const skipped = [];
+    const exportedFiles = [];
 
     try {
-        const zip = new JSZip();
         const style = els.styleSelect.value;
         const scale = Number(els.scaleSlider.value) / 100;
-
-        let exportedCount = 0;
+        const exportSize = getFolderExportSize();
 
         for (const icon of selected) {
             const targetSrc = getExportIconSrc(icon);
             const safeName = getSafeFileName(icon.displayName);
             const isLogoExport = icon.tab === 'logos';
-            const isDockExport = icon.tab === 'dock';
 
-            els.downloadBtn.textContent = `Export ${exportedCount + skipped.length + 1}/${selected.length}`;
+            els.downloadBtn.textContent = `Export ${exportedFiles.length + skipped.length + 1}/${selected.length}`;
 
             if (!isLogoExport && (state.missingAssets.has(targetSrc) || icon.isMissing)) {
                 skipped.push(safeName);
@@ -3688,77 +3826,7 @@ async function exportSelectedIcons() {
             }
 
             try {
-                if (isLogoExport) {
-                    state.missingAssets.delete(targetSrc);
-                    icon.isMissing = false;
-
-                    zip.file(
-                        icon.filename || `${safeName}_Logo.png`,
-                        await logoToBlob(targetSrc, icon.displayName)
-                    );
-
-                    exportedCount++;
-                    continue;
-                }
-
-                if (isDockExport) {
-                    const iconImg = await loadImage(targetSrc);
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-
-                    canvas.width = 256;
-                    canvas.height = 256;
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-                    ctx.drawImage(iconImg, 0, 0, 256, 256);
-
-                    zip.file(icon.filename || `${safeName}_Dock.png`, await canvasToBlob(canvas));
-                    exportedCount++;
-                    continue;
-                }
-
-                const effectiveStyle = getEffectiveStyleForIcon(icon, style);
-
-                if (effectiveStyle === 'icon_only') {
-                    zip.file(icon.filename || `${safeName}.png`, await sourceToBlob(targetSrc, icon.displayName));
-                    exportedCount++;
-                    continue;
-                }
-
-                const iconImg = await loadImage(targetSrc);
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-
-                canvas.width = 1024;
-                canvas.height = 1024;
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-
-                const effectiveFolderAngle = effectiveStyle === 'pods'
-                    ? 0
-                    : Number(els.folderTilt.value) * Math.PI / 180;
-
-                ctx.translate(512, 512);
-                ctx.rotate(effectiveFolderAngle);
-
-                const background = await getFolderBackgroundImage(icon, style);
-                if (background) ctx.drawImage(background, -512, -512, 1024, 1024);
-
-                const maxSize = 1024 * scale;
-                const { width: sourceWidth, height: sourceHeight } = getImageDimensions(iconImg, 1024, 1024);
-                const ratio = Math.min(maxSize / sourceWidth, maxSize / sourceHeight);
-                const width = sourceWidth * ratio;
-                const height = sourceHeight * ratio;
-
-                ctx.translate(
-                    1024 * (Number(els.xSlider.value) / 100),
-                    1024 * (Number(els.ySlider.value) / 100)
-                );
-                ctx.rotate(Number(els.rotSlider.value) * Math.PI / 180);
-                ctx.drawImage(iconImg, -width / 2, -height / 2, width, height);
-
-                zip.file(icon.filename || `${safeName}${getExportSuffix(effectiveStyle)}.png`, await canvasToBlob(canvas));
-                exportedCount++;
+                exportedFiles.push(await buildIconExportFile(icon, { style, scale, exportSize }));
             } catch (iconError) {
                 console.warn(`Skipped ${safeName}:`, iconError);
 
@@ -3774,13 +3842,20 @@ async function exportSelectedIcons() {
             }
         }
 
-        if (!exportedCount) {
+        if (!exportedFiles.length) {
             alert(`No exportable assets found. ${skipped.length ? `Skipped: ${skipped.slice(0, 8).join(', ')}${skipped.length > 8 ? '…' : ''}` : ''}`);
             return;
         }
 
-        els.downloadBtn.textContent = 'Zipping...';
-        saveAs(await zip.generateAsync({ type: 'blob' }), 'Export_Custom.zip');
+        if (selected.length === 1 && exportedFiles.length === 1) {
+            els.downloadBtn.textContent = 'Downloading...';
+            saveAs(exportedFiles[0].blob, exportedFiles[0].filename);
+        } else {
+            const zip = new JSZip();
+            exportedFiles.forEach(file => zip.file(file.filename, file.blob));
+            els.downloadBtn.textContent = 'Zipping...';
+            saveAs(await zip.generateAsync({ type: 'blob' }), 'Export_Custom.zip');
+        }
 
         if (skipped.length) {
             alert(`${skipped.length} asset${skipped.length > 1 ? 's were' : ' was'} skipped: ${skipped.slice(0, 8).join(', ')}${skipped.length > 8 ? '…' : ''}`);
@@ -3792,6 +3867,7 @@ async function exportSelectedIcons() {
         updateActionBar();
     }
 }
+
 
 // --- EVENTS ---
 // Attach all UI event listeners once after DOM references are cached
@@ -3984,6 +4060,13 @@ function bindEvents() {
         clearAutoColor();
         updateGlobalDesign();
         if (state.mode === 'generator' && state.activeTab === 'apps') rebuildGrid();
+    });
+
+    els.folderExportSizeBtns?.forEach(button => {
+        button.addEventListener('click', () => {
+            state.folderExportSize = Number(button.dataset.exportSize) === 512 ? 512 : 1024;
+            syncFolderExportSizeControls();
+        });
     });
 
     els.downloadBtn.addEventListener('click', exportSelectedIcons);
