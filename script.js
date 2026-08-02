@@ -33,7 +33,7 @@ const viewData = catalogData.viewData || Object.freeze(Object.fromEntries(
 const iconsDatabase = catalogData.iconsDatabase || [];
 window.viewData = viewData;
 
-// Tilted folders keep their full scale; only the SVG drop shadow is softened
+// Tilted folders keep their full scale; only the SVG drop shadow is lightly softened
 function getFolderTiltShadowScale() {
     return 1;
 }
@@ -1781,17 +1781,17 @@ function softenFolderDropShadow(doc, style) {
 
     doc.querySelectorAll('filter[id*="_d_"]').forEach(filter => {
         filter.querySelectorAll('feOffset').forEach(offset => {
-            if (offset.getAttribute('dy') === '6') offset.setAttribute('dy', '3.5');
+            if (offset.getAttribute('dy') === '6') offset.setAttribute('dy', '5');
         });
 
         filter.querySelectorAll('feGaussianBlur').forEach(blur => {
-            if (blur.getAttribute('stdDeviation') === '6') blur.setAttribute('stdDeviation', '3.75');
+            if (blur.getAttribute('stdDeviation') === '6') blur.setAttribute('stdDeviation', '5');
         });
 
         filter.querySelectorAll('feColorMatrix').forEach(matrix => {
             const values = matrix.getAttribute('values');
             if (!values) return;
-            matrix.setAttribute('values', values.replace(/ 0\.25 0$/, ' 0.18 0'));
+            matrix.setAttribute('values', values.replace(/ 0\.25 0$/, ' 0.23 0'));
         });
     });
 }
