@@ -33,6 +33,138 @@ const viewData = catalogData.viewData || Object.freeze(Object.fromEntries(
 const iconsDatabase = catalogData.iconsDatabase || [];
 window.viewData = viewData;
 
+const BLANK_PRESET_LABELS = Object.freeze(['Orange', 'Blue', 'Yellow', 'Green', 'Purple', 'Pink', 'Indigo', 'Silver', 'Gray', 'Black']);
+const SMART_FOLDER_PACK_ID = 'sticker-icons-generated-smart-folders';
+const SMART_FOLDER_PACK_NAME = 'Sticker Icons Generated Smart Folders';
+const SMART_FOLDER_PLATFORM_SLUGS = Object.freeze({
+    '3DS': 'n3ds',
+    '3DS (Alt)': 'n3ds',
+    'DS': 'nds',
+    'DS (Alt)': 'nds',
+    'DSi': 'ndsi',
+    'DSi (Alt)': 'ndsi',
+    'FDS': 'fds',
+    'GB': 'gb',
+    'GBA': 'gba',
+    'GBC': 'gbc',
+    'GameCube': 'gc',
+    'N64': 'n64',
+    'NES': 'nes',
+    'Pokémon Mini': 'pokemini',
+    'SNES': 'snes',
+    'Satellaview': 'satellaview',
+    'Switch': 'switch',
+    'Virtual Boy': 'virtualboy',
+    'Wii': 'wii',
+    'WiiU': 'wiiu',
+    'WiiU (Alt)': 'wiiu',
+    'WiiU (Full)': 'wiiu',
+    'PS1': 'psx',
+    'PS1 (Alt)': 'psx',
+    'PS2': 'ps2',
+    'PS2 (Alt)': 'ps2',
+    'PS3': 'ps3',
+    'PS3 (Alt)': 'ps3',
+    'PSP': 'psp',
+    'PSVITA': 'psvita',
+    'Dreamcast': 'dreamcast',
+    'Game Gear': 'gamegear',
+    'Genesis': 'genesis',
+    'Mega Drive': 'genesis',
+    'Master System': 'mastersystem',
+    'Naomi': 'naomi',
+    'Pico': 'pico',
+    'Saturn': 'saturn',
+    'Sega 32X': 'sega32x',
+    'Sega CD': 'segacd',
+    'SG-1000': 'sg-1000',
+    'Atari 2600': 'atari2600',
+    'Atari 5200': 'atari5200',
+    'Atari 7800': 'atari7800',
+    'Atari Jaguar': 'atarijaguar',
+    'Atari Lynx': 'atarilynx',
+    'Atari ST': 'atarist',
+    'Neo-Geo': 'neogeo',
+    'Neo-Geo CD': 'neogeocd',
+    'Neo-Geo Pocket': 'ngp',
+    'Neo-Geo Pocket Color': 'ngpc',
+    'Windows': 'windows',
+    'Xbox': 'xbox',
+    'PC-60': 'pc60',
+    'PC-88': 'pc88',
+    'PC-98': 'pc98',
+    'PC-FX': 'pcfx',
+    'PC Engine': 'tg16',
+    'PC-Engine': 'tg16',
+    'PC Engine CD': 'tg-cd',
+    'Commodore 64': 'c64',
+    'Commodore 64 (Alt)': 'c64',
+    'VIC-20': 'vic20',
+    'Amiga': 'amiga',
+    'ZX Spectrum': 'zxspectrum',
+    '3DO': '3do',
+    'Amstrad CPC': 'amstradcpc',
+    'Arduboy': 'arduboy',
+    'Atomiswave': 'atomiswave',
+    'Mega Duck': 'megaduck',
+    'MSX': 'msx',
+    'N-Gage': 'ngage',
+    'ScummVM': 'scummvm',
+    'ScummVM (Alt)': 'scummvm',
+    'Steam': 'steam',
+    'SuperGrafx': 'supergrafx',
+    'Supervision': 'supervision',
+    'TurboGrafx-16': 'tg16',
+    'WonderSwan': 'wonderswan',
+    'WonderSwan Color': 'wonderswancolor',
+    'MAME': 'mame',
+    'FBNeo': 'fbneo',
+    'CPS-1': 'cps1',
+    'CPS-2': 'cps2',
+    'CPS-3': 'cps3'
+});
+const SMART_FOLDER_GENERIC_SLUGS = Object.freeze({
+    'Favorites': 'favorites',
+    'Liked': 'favorites',
+    'Recent': 'recent',
+    'Recent (Dynamic)': 'recent',
+    'Recently Played': 'recent',
+    'Most Played': 'most_played',
+    'Newly Added': 'newly_added',
+    'Unplayed': 'unplayed'
+});
+
+function ensureBlankEntries() {
+    if (iconsDatabase.some(icon => icon.tab === 'blanks')) return;
+
+    const blanks = PRESETS.map((palette, index) => ({
+        id: `blank_preset_${index}`,
+        src: '',
+        filename: `Blank_${BLANK_PRESET_LABELS[index] || `Preset_${index + 1}`}.png`,
+        displayName: `${BLANK_PRESET_LABELS[index] || `Preset ${index + 1}`}`,
+        tab: 'blanks',
+        presetIndex: index,
+        sourceType: 'blank',
+        isBlank: true,
+        blankPalette: { ...palette }
+    }));
+
+    blanks.push({
+        id: 'blank_custom',
+        src: '',
+        filename: 'Blank_Custom.png',
+        displayName: 'Custom',
+        tab: 'blanks',
+        sourceType: 'blank',
+        isBlank: true,
+        dynamicBlank: true
+    });
+
+    iconsDatabase.push(...blanks);
+}
+
+ensureBlankEntries();
+
 // Tilted folders keep their full scale; only the SVG drop shadow is lightly softened
 function getFolderTiltShadowScale() {
     return 1;
@@ -263,6 +395,9 @@ const els = {
     adjustmentsTitle: document.getElementById('adjustments-title'),
     iconControlsGroup: document.getElementById('icon-controls-group') || document.querySelectorAll('.control-group')[1],
     subTabsContainer: document.getElementById('sub-tabs') || document.querySelectorAll('.tabs')[1],
+    selectionTools: document.getElementById('selection-tools'),
+    selectVisibleBtn: document.getElementById('select-visible-btn'),
+    clearVisibleBtn: document.getElementById('clear-visible-btn'),
     backgroundPanel: document.getElementById('background-panel'),
     backgroundPreviewImage: document.getElementById('background-preview-image'),
     backgroundPreviewCanvas: document.getElementById('background-preview-canvas'),
@@ -410,7 +545,33 @@ function syncAutoColorButtonState() {
 }
 
 // Resolve the final palette for a specific icon in the current context
+function isBlankIcon(icon) {
+    return Boolean(icon && (icon.isBlank || icon.tab === 'blanks'));
+}
+
+function isBlanksTabContext() {
+    return state.mode === 'generator' && state.activeTab === 'blanks';
+}
+
+function isStyleDisabledForCurrentContext(style) {
+    return isBlanksTabContext() && (style === 'icon_only' || style === 'custom');
+}
+
+function ensureAllowedStyleForCurrentContext() {
+    if (!isStyleDisabledForCurrentContext(els.styleSelect.value)) return false;
+
+    els.styleSelect.value = DEFAULTS.style;
+    return true;
+}
+
 function getEffectivePaletteForIcon(icon) {
+    if (isBlankIcon(icon)) {
+        if (icon.dynamicBlank) return getPalette();
+        if (icon.blankPalette?.top && icon.blankPalette?.bottom) return icon.blankPalette;
+        if (Number.isInteger(icon.presetIndex) && PRESETS[icon.presetIndex]) return PRESETS[icon.presetIndex];
+        return getPalette();
+    }
+
     return shouldUseBrandPaletteForIcon(icon) ? icon.brandPalette : getPalette();
 }
 
@@ -455,9 +616,12 @@ function syncPaletteControls() {
 // Mirror hidden select values onto the visible Shape and Folder angle buttons
 function syncChoiceButtons() {
     els.styleOptionBtns.forEach(button => {
+        const isDisabled = isStyleDisabledForCurrentContext(button.dataset.style);
         const isActive = button.dataset.style === els.styleSelect.value;
-        button.classList.toggle('active', isActive);
-        button.setAttribute('aria-pressed', String(isActive));
+        button.disabled = isDisabled;
+        button.classList.toggle('active', isActive && !isDisabled);
+        button.setAttribute('aria-pressed', String(isActive && !isDisabled));
+        button.setAttribute('aria-disabled', String(isDisabled));
     });
 
     els.tiltOptionBtns.forEach(button => {
@@ -1612,8 +1776,15 @@ function rememberNormalGeneratorStyle() {
 function restoreNormalGeneratorStyleIfNeeded() {
     if (state.mode !== 'generator' || state.activeTab === 'apps') return false;
 
-    const targetStyle = state.generatorStyle || DEFAULTS.style;
-    if (els.styleSelect.value === targetStyle) return false;
+    const rememberedStyle = state.generatorStyle || DEFAULTS.style;
+    const targetStyle = isStyleDisabledForCurrentContext(rememberedStyle)
+        ? DEFAULTS.style
+        : rememberedStyle;
+
+    if (els.styleSelect.value === targetStyle) {
+        updateStyleControls();
+        return false;
+    }
 
     els.styleSelect.value = targetStyle;
     updateStyleControls();
@@ -1701,6 +1872,8 @@ function clearAutoColor() {
     document.querySelectorAll('.card-bg').forEach(bg => {
         bg.style.backgroundImage = '';
     });
+
+    refreshVisibleCardBackgrounds();
 }
 
 // Convert a hex color into RGB components
@@ -1952,10 +2125,52 @@ function updateFolderBackground() {
 }
 
 // Refresh dynamic SVGs, background images, and visible icon sources after design changes
+function refreshVisibleCardBackgrounds() {
+    document.querySelectorAll('.card').forEach(card => {
+        if (card.classList.contains('add-card')) return;
+
+        const icon = iconsDatabase.find(item => item.id === card.dataset.id);
+        const bg = card.querySelector('.card-bg');
+        if (!icon || !bg) return;
+
+        if (isBlankIcon(icon)) {
+            const style = getEffectiveStyleForIcon(icon);
+            if (style === 'custom') {
+                bg.style.backgroundImage = state.assets.customBgDataUrl ? `url("${state.assets.customBgDataUrl}")` : '';
+            } else if (style === 'icon_only') {
+                bg.style.backgroundImage = '';
+            } else {
+                bg.style.backgroundImage = `url("${getColoredFolderDataUrl(style, getEffectivePaletteForIcon(icon))}")`;
+            }
+            return;
+        }
+
+        if (state.autoColor.enabled && state.autoColor.cardImages[icon.id]) {
+            bg.style.backgroundImage = `url("${state.autoColor.cardImages[icon.id].src}")`;
+            return;
+        }
+
+        if (icon.tab === 'apps' && shouldUseBrandPaletteForIcon(icon)) {
+            const style = getEffectiveStyleForIcon(icon);
+            if (style === 'custom') {
+                bg.style.backgroundImage = state.assets.customBgDataUrl ? `url("${state.assets.customBgDataUrl}")` : '';
+            } else if (style === 'icon_only') {
+                bg.style.backgroundImage = '';
+            } else {
+                bg.style.backgroundImage = `url("${getColoredFolderDataUrl(style, getEffectivePaletteForIcon(icon))}")`;
+            }
+            return;
+        }
+
+        bg.style.backgroundImage = '';
+    });
+}
+
 function updateGlobalDesign() {
     updateDynamicIconUrls();
     refreshVisibleIconSources();
     updateFolderBackground();
+    refreshVisibleCardBackgrounds();
     updateBackgroundPreview();
 }
 
@@ -1989,6 +2204,7 @@ function updateActionBar() {
     els.downloadBtn.disabled = count === 0;
     els.downloadBtn.textContent = count === 1 ? 'Download PNG' : 'Download ZIP';
     syncFolderExportSizeControls();
+    updateSelectionToolsState();
 }
 
 // Highlight the active category tab
@@ -2101,6 +2317,12 @@ function applyFolderTilt() {
 
 // Keep style-dependent controls in sync, including custom upload visibility and default Y offset
 function updateStyleControls() {
+    ensureAllowedStyleForCurrentContext();
+
+    Array.from(els.styleSelect.options).forEach(option => {
+        option.disabled = isStyleDisabledForCurrentContext(option.value);
+    });
+
     const style = els.styleSelect.value;
 
     els.customUploadBtn.style.display = style === 'custom' ? 'block' : 'none';
@@ -2176,6 +2398,7 @@ function updateModeControls() {
     els.grid.hidden = isBackgroundMode;
     els.grid.classList.toggle('assets-mode', isAssetsMode || isDockMode);
     document.body.dataset.mode = state.mode;
+    updateSelectionToolsState();
 
     syncBackgroundExportControls();
     syncAutoColorButtonState();
@@ -2209,6 +2432,124 @@ function getVisibleIconsForCurrentMode() {
     if (state.mode === 'assets') return iconsDatabase.filter(icon => icon.tab === 'logos');
     if (state.mode === 'dock') return iconsDatabase.filter(icon => icon.tab === 'dock');
     return iconsDatabase.filter(icon => icon.tab !== 'logos' && icon.tab !== 'dock' && icon.tab === state.activeTab);
+}
+
+function getSelectionLabel(icon) {
+    return String(icon?.displayName || icon?.name || icon?.filename || icon?.id || '').trim();
+}
+
+function getVariantBaseLabel(label) {
+    return String(label || '').replace(/\s*\((Alt|Full)\)$/i, '').trim();
+}
+
+function isExclusiveVariantLabel(label) {
+    return /\s*\((Alt|Full)\)$/i.test(String(label || ''));
+}
+
+function getExclusiveVariantGroupKey(icon) {
+    if (!icon || !icon.tab) return null;
+
+    const label = getSelectionLabel(icon);
+    const baseLabel = getVariantBaseLabel(label);
+    if (!baseLabel) return null;
+
+    const hasVariantSibling = iconsDatabase.some(other => {
+        if (!other || other === icon || other.tab !== icon.tab) return false;
+        const otherLabel = getSelectionLabel(other);
+        return getVariantBaseLabel(otherLabel) === baseLabel && isExclusiveVariantLabel(otherLabel);
+    });
+
+    if (!hasVariantSibling && !isExclusiveVariantLabel(label)) return null;
+    return `${icon.tab}::${baseLabel.toLowerCase()}`;
+}
+
+function getVariantSelectionPriority(icon) {
+    const label = getSelectionLabel(icon);
+    if (/\s*\(Alt\)$/i.test(label)) return 2;
+    if (/\s*\(Full\)$/i.test(label)) return 1;
+    return 0;
+}
+
+function getCardElementForIcon(icon) {
+    if (!els.grid || !icon?.id) return null;
+    const escapedId = window.CSS?.escape ? window.CSS.escape(icon.id) : String(icon.id).replace(/"/g, '\"');
+    return els.grid.querySelector(`.card[data-id="${escapedId}"]`);
+}
+
+function syncCardSelectionState(icon) {
+    const card = getCardElementForIcon(icon);
+    if (card) card.classList.toggle('selected', state.selectedIcons.has(icon));
+}
+
+function deselectConflictingVariantIcons(icon) {
+    const groupKey = getExclusiveVariantGroupKey(icon);
+    if (!groupKey) return;
+
+    Array.from(state.selectedIcons).forEach(selectedIcon => {
+        if (selectedIcon === icon) return;
+        if (getExclusiveVariantGroupKey(selectedIcon) !== groupKey) return;
+        state.selectedIcons.delete(selectedIcon);
+        syncCardSelectionState(selectedIcon);
+    });
+}
+
+function selectIcon(icon) {
+    deselectConflictingVariantIcons(icon);
+    state.selectedIcons.add(icon);
+    syncCardSelectionState(icon);
+}
+
+function deselectIcon(icon) {
+    state.selectedIcons.delete(icon);
+    syncCardSelectionState(icon);
+}
+
+function getBulkSelectableIcons(icons) {
+    const grouped = new Map();
+    const independent = [];
+
+    icons.forEach(icon => {
+        const groupKey = getExclusiveVariantGroupKey(icon);
+        if (!groupKey) {
+            independent.push(icon);
+            return;
+        }
+
+        const current = grouped.get(groupKey);
+        if (!current || getVariantSelectionPriority(icon) < getVariantSelectionPriority(current)) {
+            grouped.set(groupKey, icon);
+        }
+    });
+
+    return [...independent, ...grouped.values()];
+}
+
+function selectAllVisibleIcons() {
+    const visibleIcons = getVisibleIconsForCurrentMode();
+    getBulkSelectableIcons(visibleIcons).forEach(selectIcon);
+    updateActionBar();
+    updateSelectionToolsState();
+}
+
+function clearVisibleSelection() {
+    getVisibleIconsForCurrentMode().forEach(deselectIcon);
+    updateActionBar();
+    updateSelectionToolsState();
+}
+
+function updateSelectionToolsState() {
+    if (!els.selectionTools) return;
+
+    const showTools = state.mode === 'generator';
+    els.selectionTools.hidden = !showTools;
+    if (!showTools) return;
+
+    const visibleIcons = getVisibleIconsForCurrentMode();
+    const hasVisibleIcons = visibleIcons.length > 0;
+    const hasSelectedVisibleIcons = visibleIcons.some(icon => state.selectedIcons.has(icon));
+
+    if (els.selectVisibleBtn) els.selectVisibleBtn.disabled = !hasVisibleIcons;
+    if (els.clearVisibleBtn) els.clearVisibleBtn.disabled = !hasSelectedVisibleIcons;
 }
 
 // Create or reuse an Auto Color background image for a specific icon
@@ -2248,14 +2589,14 @@ function getIconPreviewSrc(icon) {
 // Select or deselect a card and refresh the action bar
 function toggleIconSelection(icon, card) {
     if (state.selectedIcons.has(icon)) {
-        state.selectedIcons.delete(icon);
-        card.classList.remove('selected');
+        deselectIcon(icon);
     } else {
-        state.selectedIcons.add(icon);
-        card.classList.add('selected');
+        selectIcon(icon);
     }
 
+    card.classList.toggle('selected', state.selectedIcons.has(icon));
     updateActionBar();
+    updateSelectionToolsState();
 }
 
 // Replace broken images with a neutral WIP/Missing placeholder
@@ -2289,6 +2630,7 @@ function markMissingAsset(card, img, icon) {
 function createIconCard(icon) {
     const card = document.createElement('div');
     const hasBackground = icon.tab !== 'logos' && icon.tab !== 'dock';
+    const isBlankCard = isBlankIcon(icon);
 
     card.className = 'card';
     card.dataset.tab = icon.tab;
@@ -2298,27 +2640,39 @@ function createIconCard(icon) {
     const bgHtml = hasBackground ? '<div class="card-bg"></div>' : '';
     const imgSrc = getIconPreviewSrc(icon);
     const name = escapeHtml(icon.displayName);
+    const iconHtml = isBlankCard
+        ? '<div class="card-blank-placeholder" aria-hidden="true"></div>'
+        : `<img class="card-icon" data-name="${name}" alt="" loading="lazy" decoding="async">`;
 
     card.innerHTML = `
         <div class="card-preview">
             ${bgHtml}
-            <img class="card-icon" data-name="${name}" alt="" loading="lazy" decoding="async">
+            ${iconHtml}
         </div>
         <span class="card-name">${name}</span>
     `;
 
     const img = card.querySelector('.card-icon');
-    img.dataset.src = imgSrc;
+    if (img) {
+        img.dataset.src = imgSrc;
 
-    if (state.missingAssets.has(imgSrc) || icon.isMissing) {
-        markMissingAsset(card, img, icon);
-    } else {
-        img.addEventListener('error', () => markMissingAsset(card, img, icon), { once: true });
-        img.src = imgSrc;
+        if (state.missingAssets.has(imgSrc) || icon.isMissing) {
+            markMissingAsset(card, img, icon);
+        } else {
+            img.addEventListener('error', () => markMissingAsset(card, img, icon), { once: true });
+            img.src = imgSrc;
+        }
     }
 
     const bg = card.querySelector('.card-bg');
-    if (bg && icon.tab === 'apps' && shouldUseBrandPaletteForIcon(icon)) {
+    if (bg && isBlankCard) {
+        const style = getEffectiveStyleForIcon(icon);
+        if (style === 'custom') {
+            bg.style.backgroundImage = state.assets.customBgDataUrl ? `url("${state.assets.customBgDataUrl}")` : '';
+        } else if (style !== 'icon_only') {
+            bg.style.backgroundImage = `url("${getColoredFolderDataUrl(style, getEffectivePaletteForIcon(icon))}")`;
+        }
+    } else if (bg && icon.tab === 'apps' && shouldUseBrandPaletteForIcon(icon)) {
         const style = getEffectiveStyleForIcon(icon);
         if (style !== 'icon_only' && style !== 'custom') {
             bg.style.backgroundImage = `url("${getColoredFolderDataUrl(style, getEffectivePaletteForIcon(icon))}")`;
@@ -2351,6 +2705,7 @@ function buildGrid() {
 function rebuildGrid() {
     buildGrid();
     updateActionBar();
+    updateSelectionToolsState();
 }
 
 // Update category visibility and selection state after tab/mode changes
@@ -2652,6 +3007,51 @@ function getSafeFileName(name) {
         || 'icon';
 }
 
+// Convert a display name into a Cocoon smart-folder slug fallback
+function getSmartFolderFallbackSlug(name) {
+    return String(name || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/&/g, 'and')
+        .replace(/\([^)]*\)/g, '')
+        .replace(/[^a-z0-9]+/g, '')
+        || 'unknown';
+}
+
+// Resolve Cocoon smart-folder platform and role paths used by importable packs
+function getSmartFolderZipPath(icon) {
+    if (!icon || state.mode !== 'generator' || isBlankIcon(icon)) return '';
+
+    if (icon.tab === 'platforms') {
+        const slug = SMART_FOLDER_PLATFORM_SLUGS[icon.displayName]
+            || SMART_FOLDER_PLATFORM_SLUGS[String(icon.displayName || '').replace(/\s*\([^)]*\)\s*$/, '')]
+            || getSmartFolderFallbackSlug(icon.displayName);
+        return `assets/smart_folders/${SMART_FOLDER_PACK_ID}/smart_folders/by_platform/${slug}/icon.png`;
+    }
+
+    if (icon.tab === 'generic') {
+        const slug = SMART_FOLDER_GENERIC_SLUGS[icon.displayName]
+            || SMART_FOLDER_GENERIC_SLUGS[String(icon.displayName || '').replace(/\s*\([^)]*\)\s*$/, '')];
+        if (slug) return `assets/smart_folders/${SMART_FOLDER_PACK_ID}/smart_folders/${slug}/icon.png`;
+    }
+
+    return '';
+}
+
+function getSmartFolderMetadata(fileCount) {
+    return JSON.stringify({
+        id: SMART_FOLDER_PACK_ID,
+        name: SMART_FOLDER_PACK_NAME,
+        author: 'Celthium',
+        category: 'smart_folders',
+        version: '1.0',
+        description: 'Generated smart folder icons from Sticker Icons Editor',
+        file_count: fileCount,
+        settings: null
+    }, null, 2);
+}
+
 // Resolve the exact icon image source used during export
 function getExportIconSrc(icon) {
     if (icon.tab === 'dock' && state.assets.dynamicDockUrls[icon.displayName]) {
@@ -2678,6 +3078,20 @@ function getExportSuffix(style) {
 // Resolve the background image used behind an icon during export
 async function getFolderBackgroundImage(icon, style) {
     const effectiveStyle = getEffectiveStyleForIcon(icon, style);
+
+    if (isBlankIcon(icon)) {
+        const blankStyle = effectiveStyle === 'icon_only' ? DEFAULTS.style : effectiveStyle;
+
+        if (blankStyle === 'custom' && state.assets.customBgDataUrl) {
+            return loadImage(state.assets.customBgDataUrl);
+        }
+
+        if (blankStyle !== 'custom') {
+            return loadImage(getColoredFolderDataUrl(blankStyle, getEffectivePaletteForIcon(icon)));
+        }
+
+        return null;
+    }
 
     if (effectiveStyle === 'icon_only') {
         return null;
@@ -3703,6 +4117,40 @@ async function buildIconExportFile(icon, { style, scale, exportSize }) {
     const safeName = getSafeFileName(icon.displayName);
     const isLogoExport = icon.tab === 'logos';
     const isDockExport = icon.tab === 'dock';
+    const isBlankExport = isBlankIcon(icon);
+
+    if (isBlankExport) {
+        const effectiveStyle = getEffectiveStyleForIcon(icon, style) === 'icon_only'
+            ? DEFAULTS.style
+            : getEffectiveStyleForIcon(icon, style);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const size = exportSize;
+        const center = size / 2;
+
+        canvas.width = size;
+        canvas.height = size;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        const effectiveFolderAngleDeg = effectiveStyle === 'pods'
+            ? 0
+            : Number(els.folderTilt.value) || 0;
+        const effectiveFolderAngle = effectiveFolderAngleDeg * Math.PI / 180;
+        const folderTiltShadowScale = getFolderTiltShadowScale(effectiveFolderAngleDeg);
+
+        ctx.translate(center, center);
+        ctx.rotate(effectiveFolderAngle);
+        ctx.scale(folderTiltShadowScale, folderTiltShadowScale);
+
+        const background = await getFolderBackgroundImage(icon, effectiveStyle);
+        if (background) ctx.drawImage(background, -center, -center, size, size);
+
+        return {
+            filename: icon.filename || `${safeName}${getExportSuffix(effectiveStyle)}.png`,
+            blob: await canvasToBlob(canvas)
+        };
+    }
 
     if (!isLogoExport && (state.missingAssets.has(targetSrc) || icon.isMissing)) {
         throw new Error('asset is marked as missing');
@@ -3781,8 +4229,11 @@ async function buildIconExportFile(icon, { style, scale, exportSize }) {
     ctx.rotate(Number(els.rotSlider.value) * Math.PI / 180);
     ctx.drawImage(iconImg, -width / 2, -height / 2, width, height);
 
+    const zipPath = getSmartFolderZipPath(icon);
+
     return {
-        filename: icon.filename || `${safeName}${getExportSuffix(effectiveStyle)}.png`,
+        filename: zipPath ? 'icon.png' : icon.filename || `${safeName}${getExportSuffix(effectiveStyle)}.png`,
+        zipPath,
         blob: await canvasToBlob(canvas)
     };
 }
@@ -3852,9 +4303,18 @@ async function exportSelectedIcons() {
             saveAs(exportedFiles[0].blob, exportedFiles[0].filename);
         } else {
             const zip = new JSZip();
-            exportedFiles.forEach(file => zip.file(file.filename, file.blob));
+            const smartFolderFiles = exportedFiles.filter(file => file.zipPath);
+
+            if (smartFolderFiles.length) {
+                zip.file(
+                    `assets/smart_folders/${SMART_FOLDER_PACK_ID}/metadata.json`,
+                    getSmartFolderMetadata(smartFolderFiles.length)
+                );
+            }
+
+            exportedFiles.forEach(file => zip.file(file.zipPath || file.filename, file.blob));
             els.downloadBtn.textContent = 'Zipping...';
-            saveAs(await zip.generateAsync({ type: 'blob' }), 'Export_Custom.zip');
+            saveAs(await zip.generateAsync({ type: 'blob' }), smartFolderFiles.length ? 'Cocoon_Smart_Folders.zip' : 'Export_Custom.zip');
         }
 
         if (skipped.length) {
@@ -3881,6 +4341,8 @@ function bindEvents() {
 
     els.styleOptionBtns.forEach(button => {
         button.addEventListener('click', () => {
+            if (button.disabled || isStyleDisabledForCurrentContext(button.dataset.style)) return;
+
             if (state.mode === 'generator' && state.activeTab === 'apps') {
                 state.defaultStyle.apps = false;
             }
@@ -4015,6 +4477,9 @@ function bindEvents() {
         });
     });
 
+    els.selectVisibleBtn?.addEventListener('click', selectAllVisibleIcons);
+    els.clearVisibleBtn?.addEventListener('click', clearVisibleSelection);
+
     els.presetBtns.forEach(button => {
         button.addEventListener('click', () => setPalette(button.dataset.c1, button.dataset.c2, { rebuild: state.mode === 'generator' && state.activeTab === 'apps' }));
     });
@@ -4049,6 +4514,8 @@ function bindEvents() {
     els.folderTilt.addEventListener('change', applyFolderTilt);
 
     els.styleSelect.addEventListener('change', () => {
+        ensureAllowedStyleForCurrentContext();
+
         if (state.mode === 'generator' && state.activeTab !== 'apps') {
             state.generatorStyle = els.styleSelect.value || DEFAULTS.style;
             state.assets.backgroundExternalFolderPreviewKey = '';
@@ -4059,7 +4526,7 @@ function bindEvents() {
         syncAutoColorButtonState();
         clearAutoColor();
         updateGlobalDesign();
-        if (state.mode === 'generator' && state.activeTab === 'apps') rebuildGrid();
+        if (state.mode === 'generator' && (state.activeTab === 'apps' || state.activeTab === 'blanks')) rebuildGrid();
     });
 
     els.folderExportSizeBtns?.forEach(button => {
@@ -4082,6 +4549,7 @@ function init() {
     updateStyleControls();
     syncTemporaryIconScale();
     updateModeControls();
+    updateSelectionToolsState();
     applyBackgroundOverlayControls();
     syncBackgroundVideoControls();
     updateGlobalDesign();

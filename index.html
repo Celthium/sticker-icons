@@ -14,6 +14,7 @@
             --icon-y: 8%;
             --icon-rot: 0deg;
             --folder-rot: 0deg;
+            --folder-tilt-scale: 1;
             --page: #f6f7f9;
             --surface: #ffffff;
             --surface-soft: #f9fafb;
@@ -382,6 +383,50 @@
         .tab-btn:hover { color: var(--ink); background: var(--surface-soft); }
         .tab-btn.active { color: var(--accent); background: var(--accent-soft); }
 
+        .selection-tools {
+            width: fit-content;
+            max-width: 100%;
+            margin: -8px auto 20px;
+            padding: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid var(--line);
+            border-radius: 15px;
+            background: var(--surface);
+        }
+
+        .selection-tools[hidden] { display: none !important; }
+        .selection-tools-label {
+            padding: 0 8px 0 6px;
+            color: var(--muted);
+            font-size: 0.76rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .selection-tool-btn {
+            min-height: 36px;
+            padding: 8px 12px;
+            border-radius: 11px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 800;
+            transition: background 0.16s ease, color 0.16s ease, opacity 0.16s ease;
+        }
+
+        .selection-tool-btn:hover:not(:disabled) {
+            color: var(--ink);
+            background: var(--surface-soft);
+        }
+
+        .selection-tool-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -419,7 +464,7 @@
         }
         .card.hidden { display: none !important; }
 
-        .card-preview { position: relative; width: 100px; height: 100px; margin: 0 auto 10px; transform: rotate(var(--folder-rot)); transition: transform 0.16s ease; }
+        .card-preview { position: relative; width: 100px; height: 100px; margin: 0 auto 10px; transform: rotate(var(--folder-rot)) scale(var(--folder-tilt-scale)); transition: transform 0.16s ease; }
         .card-bg { position: absolute; inset: 0; background-image: var(--folder-bg); background-size: contain; background-repeat: no-repeat; background-position: center; }
         .card-icon { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; object-fit: contain; pointer-events: none; transform: translate(calc(-50% + var(--icon-x)), calc(-50% + var(--icon-y))) scale(var(--icon-scale)) rotate(var(--icon-rot)); }
         .card-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #475569; font-size: 0.76rem; font-weight: 750; }
@@ -1204,7 +1249,14 @@
         <button type="button" class="tab-btn" data-tab="games">Games</button>
         <button type="button" class="tab-btn" data-tab="generic">Generic</button>
         <button type="button" class="tab-btn" data-tab="apps">Apps</button>
+        <button type="button" class="tab-btn" data-tab="blanks">Blanks</button>
         <button type="button" class="tab-btn" data-tab="custom">Custom</button>
+    </div>
+
+    <div id="selection-tools" class="selection-tools" hidden>
+        <span class="selection-tools-label">Current tab</span>
+        <button type="button" id="select-visible-btn" class="selection-tool-btn" title="Select all in the current tab, without Alt / Full duplicates.">Select all</button>
+        <button type="button" id="clear-visible-btn" class="selection-tool-btn">Clear</button>
     </div>
 
     <div id="background-screen-tabs" class="tabs background-screen-tabs" hidden role="tablist" aria-label="Wallpaper screen">
