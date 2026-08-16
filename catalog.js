@@ -216,6 +216,7 @@
             { name: 'Internet (Dynamic)', presetIndex: 0 },
             { name: 'Chat (Dynamic)', presetIndex: 0 },
             { name: 'Infinite (Dynamic)', presetIndex: 0 },
+            { name: 'Gallery (Dynamic)', presetIndex: 0 },
             { name: 'Settings (Dynamic)', presetIndex: 0 },
             { name: 'Controller', presetIndex: 7, asset: 'assets/generic/controller.svg' },
             { name: 'Controller Timer', presetIndex: 7, asset: 'assets/generic/controller-timer.svg' },
@@ -226,6 +227,7 @@
             { name: 'Media', presetIndex: 9, asset: 'assets/generic/media.svg' },
             { name: 'Favorites', presetIndex: 2, asset: 'assets/generic/star.svg' },
             { name: 'Liked', presetIndex: 5, asset: 'assets/generic/heart.svg' },
+            { name: 'Gallery', presetIndex: 5, asset: 'assets/generic/gallery.svg' },
             { name: 'Settings', presetIndex: 7, asset: 'assets/generic/settings.svg' }
         ],
         apps: appEntries([
@@ -326,7 +328,8 @@
             { name: 'Chat', presetIndex: 1 },
             { name: 'Book', presetIndex: 7 },
             { name: 'Streaming', presetIndex: 9 },
-            { name: 'Settings', presetIndex: 7 }
+            { name: 'Settings', presetIndex: 7 },
+            { name: 'Gallery', presetIndex: 5 }
         ])
     });
 

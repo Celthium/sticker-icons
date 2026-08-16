@@ -131,7 +131,8 @@ const SMART_FOLDER_GENERIC_SLUGS = Object.freeze({
     'Recently Played': 'recent',
     'Most Played': 'most_played',
     'Newly Added': 'newly_added',
-    'Unplayed': 'unplayed'
+    'Unplayed': 'unplayed',
+    'Gallery': 'gallery'
 });
 
 function ensureBlankEntries() {
