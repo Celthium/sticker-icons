@@ -36,6 +36,8 @@ window.viewData = viewData;
 const BLANK_PRESET_LABELS = Object.freeze(['Orange', 'Blue', 'Yellow', 'Green', 'Purple', 'Pink', 'Indigo', 'Silver', 'Gray', 'Black']);
 const SMART_FOLDER_PACK_ID = 'sticker-icons-generated-smart-folders';
 const SMART_FOLDER_PACK_NAME = 'Sticker Icons Generated Smart Folders';
+const FOLDER_EXPORT_SIZES = Object.freeze([256, 512, 1024]);
+const DEFAULT_FOLDER_EXPORT_SIZE = 1024;
 const SMART_FOLDER_PLATFORM_SLUGS = Object.freeze({
     '3DS': 'n3ds',
     '3DS (Alt)': 'n3ds',
@@ -337,7 +339,7 @@ const state = {
     },
     generatorStyle: DEFAULTS.style,
     folderPreviewPalette: { ...DEFAULTS.colors },
-    folderExportSize: 1024,
+    folderExportSize: DEFAULT_FOLDER_EXPORT_SIZE,
     backgroundExportFormat: 'png',
     backgroundVideoDurationMs: BACKGROUND_WEBM_SETTINGS.durationMs,
     backgroundAnimation: 'drift',
@@ -463,7 +465,13 @@ function clearDownloadButtonLoading() {
 
 function getFolderExportSize() {
     const size = Number(state.folderExportSize);
-    return [256, 512, 1024].includes(size) ? size : 1024;
+    return FOLDER_EXPORT_SIZES.includes(size) ? size : DEFAULT_FOLDER_EXPORT_SIZE;
+}
+
+function setFolderExportSize(value) {
+    const size = Number(value);
+    state.folderExportSize = FOLDER_EXPORT_SIZES.includes(size) ? size : DEFAULT_FOLDER_EXPORT_SIZE;
+    syncFolderExportSizeControls();
 }
 
 function syncFolderExportSizeControls() {
@@ -4532,11 +4540,17 @@ function bindEvents() {
     });
 
     els.folderExportSizeBtns?.forEach(button => {
-        button.addEventListener('click', () => {
-            const nextSize = Number(button.dataset.exportSize);
-            state.folderExportSize = [256, 512, 1024].includes(nextSize) ? nextSize : 1024;
-            syncFolderExportSizeControls();
+        button.addEventListener('click', event => {
+            event.preventDefault();
+            setFolderExportSize(button.dataset.exportSize);
         });
+    });
+
+    els.folderExportSizeControl?.addEventListener('click', event => {
+        const button = event.target.closest?.('.folder-export-size-btn[data-export-size]');
+        if (!button) return;
+        event.preventDefault();
+        setFolderExportSize(button.dataset.exportSize);
     });
 
     els.downloadBtn.addEventListener('click', exportSelectedIcons);
