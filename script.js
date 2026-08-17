@@ -462,7 +462,8 @@ function clearDownloadButtonLoading() {
 }
 
 function getFolderExportSize() {
-    return Number(state.folderExportSize) === 512 ? 512 : 1024;
+    const size = Number(state.folderExportSize);
+    return [256, 512, 1024].includes(size) ? size : 1024;
 }
 
 function syncFolderExportSizeControls() {
@@ -4532,7 +4533,8 @@ function bindEvents() {
 
     els.folderExportSizeBtns?.forEach(button => {
         button.addEventListener('click', () => {
-            state.folderExportSize = Number(button.dataset.exportSize) === 512 ? 512 : 1024;
+            const nextSize = Number(button.dataset.exportSize);
+            state.folderExportSize = [256, 512, 1024].includes(nextSize) ? nextSize : 1024;
             syncFolderExportSizeControls();
         });
     });
